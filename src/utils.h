@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <SDL/SDL.h>
+#include <SDL.h>
 #include <iostream>
 
 

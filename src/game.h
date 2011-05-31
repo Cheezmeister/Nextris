@@ -3,7 +3,7 @@
 
 #include <cstdlib>
 #include <ctime>
-#include <SDL/SDL.h>
+#include <SDL.h>
 #include "debug.h"
 #include "block.h"
 #include "field.h"

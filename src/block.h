@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib>
-#include <SDL/SDL.h>
+#include <SDL.h>
 #include "utils.h"
 
 #define BLOCK_WIDTH 32
