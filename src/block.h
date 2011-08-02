@@ -10,6 +10,14 @@
 #define BLOCK_WIDTH 32
 
 enum {
+    SND_ASPLOADED,
+    SND_ROTATELEFT,
+    SND_ROTATERIGHT,
+    SND_SHIFTLEFT,
+    SND_SHIFTRIGHT
+};
+
+enum {
 	SHAPE_I, 
 	SHAPE_L, 
 	SHAPE_J, 

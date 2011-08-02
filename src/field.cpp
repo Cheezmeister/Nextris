@@ -66,11 +66,11 @@ void Field::handleEvent(SDL_Event* evt)
 	//move left
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_LEFT)
 		if (activeQuad)
-			;//activeQuad->moveLeft();
+			activeQuad->moveLeft();
 	//move right
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_RIGHT)
 		if (activeQuad)
-			;//activeQuad->moveRight();
+			activeQuad->moveRight();
 	}
 
 void Field::handleInput(Uint8* keystate)
@@ -84,17 +84,6 @@ void Field::handleInput(Uint8* keystate)
 		{
 		harddrop = true;
 		}
-	if (keystate[USRKEY_LEFT])
-		{
-		if (!pushBlocks)
-			activeQuad->moveLeft();
-		}
-	if (keystate[USRKEY_RIGHT])
-		{
-		if (!pushBlocks)
-			activeQuad->moveRight();
-		}
-
 	}
 
 void Field::step()

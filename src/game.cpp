@@ -8,6 +8,8 @@ int Game::run()
 	int pauseSecs;
 	srand(time(NULL) );
 
+    nextris::audio::init();
+
 	//init video
 	if ( SDL_Init( SDL_INIT_VIDEO ) < 0 )
 		{
@@ -74,7 +76,7 @@ int Game::run()
 
 		draw(screen);
 
-		update_bassline(playerScore().getTotal());
+		nextris::audio::update_bassline(playerScore().getTotal());
 
 		//regulate framerate
 		pauseSecs = nextFrame - SDL_GetTicks();

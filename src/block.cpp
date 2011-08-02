@@ -4,6 +4,7 @@
 #include "display.h"
 #include "audio.h"
 
+
 //Block
 Block::Block()
 	{
@@ -69,7 +70,7 @@ int Block::fall(Block*** grid)
 	}
 void Block::aspload()
 	{
-	play_sound(color, getX(), getY(), 0);
+	nextris::audio::play_sound(color, getX(), getY(), SND_ASPLOADED);
 	for (int i = 0; i < rand() % PARTICLINESS; ++i)
 		Particle::createParticle(mask.x, mask.y, color);
 	delete this;
@@ -314,7 +315,9 @@ void Quad::rotateLeft()
 		slave2->rotateAround(center, 1);
 		slave3->rotateAround(center, 1);
 		}
-	}
+    else
+        nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_ROTATELEFT);
+    }
 void Quad::rotateRight()
 	{
 	if (shape == SHAPE_O)
@@ -362,7 +365,9 @@ void Quad::rotateRight()
 		slave2->rotateAround(center, 0);
 		slave3->rotateAround(center, 0);
 		}
-	}
+    else
+        nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_ROTATERIGHT);
+ 	}
 void Quad::moveLeft()
 	{
 	master->setX(master->getX() - 1);
@@ -381,6 +386,9 @@ void Quad::moveLeft()
 		slave2->setX(slave2->getX() + 1);
 		slave3->setX(slave3->getX() + 1);
 		}
+
+    else 
+        nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_SHIFTLEFT);
 	}
 void Quad::moveRight()
 	{
@@ -399,6 +407,9 @@ void Quad::moveRight()
 		slave2->setX(slave2->getX() - 1);
 		slave3->setX(slave3->getX() - 1);
 		}
+
+    else 
+        nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_SHIFTRIGHT);    
 	}
 
 void Quad::goTo(int X, int Y)
