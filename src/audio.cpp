@@ -75,7 +75,7 @@ namespace nextris
 
         static StereoToneInfo toneInfo[CHANNELS]; //wave info
         static int chordi = 0; //chord index
-        static Uint16 rhythm = 0x1111; //bitstring for bass rhythm
+        static Uint16 rhythm = 0x0000; //bitstring for bass rhythm
 
         //clamp a value between two extremes
         template<typename T>
@@ -245,17 +245,20 @@ namespace nextris
 
 	        const Uint16 barspermin = BPM / 4; 
 	        const Uint16 ticksperbar = 60 * 1000 / barspermin;
+            const Uint16 ticksperbeat = ticksperbar / 16;
 
-	        Uint16 beat = (ticks / (ticksperbar / 16)) % 16;;
-	        if (rhythm & (1 << beat))
+	        Uint16 beat = (ticks / ticksperbeat) % 16;;
+	        if (rhythm & (1 << beat) )
 		    {
-		        toneInfo[CHANNELS - 1].left.amp = 0.4;
-		        toneInfo[CHANNELS - 1].right.amp = 0.4;
+		        toneInfo[CHANNELS - 1].right.amp = 0.05;
 		    }
             else
             {
-                toneInfo[CHANNELS - 1].left.amp = 0.1;
-		        toneInfo[CHANNELS - 1].right.amp = 0.1;
+		        toneInfo[CHANNELS - 1].right.amp = 0;
+            }
+            if (beat == 0)
+            {
+                toneInfo[CHANNELS - 1].left.amp = 0.8;
             }
 
 	        int temp = (ticks / ticksperbar) % 4;
@@ -266,13 +269,19 @@ namespace nextris
 	        toneInfo[CHANNELS - 1].right.freq = TONIC_FREQUENCY * chordProg[chordi][rand() % 6] / 4;
 	
             toneInfo[CHANNELS - 1].left.type = WT_SIN;
-            toneInfo[CHANNELS - 1].right.type = WT_SIN;
+            toneInfo[CHANNELS - 1].right.type = WT_SQUARE;
+
+            toneInfo[CHANNELS - 1].left.duration = ticksperbar;
+            toneInfo[CHANNELS - 1].right.duration = ticksperbeat;
+            toneInfo[CHANNELS - 1].left.decay = DECAY_LINEAR;
+            toneInfo[CHANNELS - 1].right.decay = DECAY_LINEAR;
 
 
 	        if (chordi == 0)
 		        {
 		        unsigned long temp = score;
 		        rhythm = temp ^ (temp << 7) ^ (temp << 14) ^ (temp << 24);
+                rhythm &= 0x5555;
 		        }
 
 	    }
@@ -293,13 +302,15 @@ namespace nextris
                 toneInfo[column].left.type = WT_SQUARE;
                 toneInfo[column].right.type = WT_SQUARE;
 
-                toneInfo[column].left.freq = TONIC_FREQUENCY * chordProg[i][0];
-                toneInfo[column].right.freq = TONIC_FREQUENCY * chordProg[i][5];
+                toneInfo[column].left.freq = TONIC_FREQUENCY * chordProg[i][0] / 2;
+                toneInfo[column].right.freq = TONIC_FREQUENCY * chordProg[i][5] / 2;
                 
                 toneInfo[column].left.duration = 0.05;
                 toneInfo[column].right.duration = 0.05;
                 toneInfo[column].right.decay = DECAY_NONE;
                 toneInfo[column].left.decay = DECAY_NONE;
+	            toneInfo[column].right.amp = (float)column / (float)FIELD_WIDTH / 10.0;
+	            toneInfo[column].left.amp = 0.1 - toneInfo[column].left.amp;
             }
             else if (what == SND_ASPLOADED)
             {
@@ -312,12 +323,12 @@ namespace nextris
                 toneInfo[column].right.duration = 1000;
                 toneInfo[column].right.decay = DECAY_LINEAR;
                 toneInfo[column].left.decay = DECAY_LINEAR;
+	            toneInfo[column].right.amp = (float)column / (float)FIELD_WIDTH;
+	            toneInfo[column].left.amp = 1.0 - toneInfo[column].left.amp;
             }
             else
                 return;
 
-	        toneInfo[column].right.amp = (float)column / (float)FIELD_WIDTH;
-	        toneInfo[column].left.amp = 1.0 - toneInfo[column].left.amp;
 	    }
     }
 }
