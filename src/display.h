@@ -12,7 +12,7 @@ void draw(SDL_Surface* screen);
 
 class Particle
 {
-	private:
+	protected:
 		int x;
 		int y;
 		int xvel;
@@ -21,11 +21,21 @@ class Particle
 		int life;
 		Particle(int X, int Y, unsigned char Color);
 	public:
-		~Particle();
-		void display(SDL_Surface* screen);
+		virtual ~Particle();
+		virtual void display(SDL_Surface* screen);
 		static std::list<Particle*>& particlePool();
 		static void createParticle(int x, int y, unsigned char color);
 		
+};
+
+class BouncyParticle : public Particle
+{
+	private:
+		BouncyParticle(int X, int Y, unsigned char Color);
+	public:
+		virtual ~BouncyParticle();
+		virtual void display(SDL_Surface* screen);
+		static void createBouncyParticle(int x, int y, unsigned char color);
 };
 
 #endif // DISPLAY_H

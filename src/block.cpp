@@ -133,6 +133,10 @@ unsigned char Block::getColor()
 void Block::deactivate()
 	{
 	active = false;
+	for (int i = 0; i < PARTICLINESS; ++i)
+		{
+		BouncyParticle::createBouncyParticle(mask.x + BLOCK_WIDTH / 2, mask.y + BLOCK_WIDTH / 2, color);
+		}
 	}
 
 int Block::getX()
@@ -231,9 +235,9 @@ int Quad::fall()
 	cdebug << "Entering Quad::fall()\n";
 
 	bool blocked = master->fall(grid) +
-	               slave1->fall(grid) +
-	               slave2->fall(grid) +
-	               slave3->fall(grid);
+				   slave1->fall(grid) +
+				   slave2->fall(grid) +
+				   slave3->fall(grid);
 	
 	if (blocked) 
 		{
@@ -248,9 +252,9 @@ int Quad::fall()
 		slave3->deactivate();
 
 		if (master->getY() < 0 ||
-		    slave1->getY() < 0 ||
-		    slave2->getY() < 0 ||
-		    slave3->getY() < 0)
+			slave1->getY() < 0 ||
+			slave2->getY() < 0 ||
+			slave3->getY() < 0)
 			{
 			return NO_ROOM;
 			}
@@ -315,9 +319,9 @@ void Quad::rotateLeft()
 		slave2->rotateAround(center, 1);
 		slave3->rotateAround(center, 1);
 		}
-    else
-        nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_ROTATELEFT);
-    }
+	else
+		nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_ROTATELEFT);
+	}
 void Quad::rotateRight()
 	{
 	if (shape == SHAPE_O)
@@ -365,9 +369,9 @@ void Quad::rotateRight()
 		slave2->rotateAround(center, 0);
 		slave3->rotateAround(center, 0);
 		}
-    else
-        nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_ROTATERIGHT);
- 	}
+	else
+		nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_ROTATERIGHT);
+	}
 void Quad::moveLeft()
 	{
 	master->setX(master->getX() - 1);
@@ -387,8 +391,8 @@ void Quad::moveLeft()
 		slave3->setX(slave3->getX() + 1);
 		}
 
-    else 
-        nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_SHIFTLEFT);
+	else 
+		nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_SHIFTLEFT);
 	}
 void Quad::moveRight()
 	{
@@ -408,8 +412,8 @@ void Quad::moveRight()
 		slave3->setX(slave3->getX() - 1);
 		}
 
-    else 
-        nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_SHIFTRIGHT);    
+	else 
+		nextris::audio::play_sound(master->getColor(), master->getX(), master->getY(), SND_SHIFTRIGHT);    
 	}
 
 void Quad::goTo(int X, int Y)

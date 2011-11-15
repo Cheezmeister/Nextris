@@ -39,10 +39,10 @@ void draw(SDL_Surface* screen)
 	
 	//the area of the right panel i.e. the non-field part of the display
 	SDL_Rect rpanel = {SCORE_X * BLOCK_WIDTH,
-	                   0,
-	                   SCORE_WIDTH * BLOCK_WIDTH,
-	                   FIELD_HEIGHT * BLOCK_WIDTH
-	                   };
+					   0,
+					   SCORE_WIDTH * BLOCK_WIDTH,
+					   FIELD_HEIGHT * BLOCK_WIDTH
+					   };
 
 	SDL_FillRect(fieldDisp, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
 	SDL_FillRect(nextDisp,  NULL, SDL_MapRGB(screen->format, 0, 0, 0));
@@ -118,3 +118,42 @@ void Particle::display(SDL_Surface* screen)
 	SDL_FillRect(screen, &rect, SDLtoU32(color) ); //draw
 	}
 
+BouncyParticle::BouncyParticle(int X, int Y, unsigned char Color) : Particle(X, Y, Color)
+	{
+	life = 100;
+	color = COLORS[Color];
+	double angle = (double)rand() / RAND_MAX * 2 * M_PI;
+	xvel = (rand() % 15) * cos(angle);
+	yvel = (rand() % 15) * sin(angle);
+	}
+
+BouncyParticle::~BouncyParticle()
+	{
+	}
+
+void BouncyParticle::createBouncyParticle(int x, int y, unsigned char color)
+	{
+	ppool.push_back(new BouncyParticle(x, y, color) );
+	}
+void BouncyParticle::display(SDL_Surface* screen)
+	{
+	if (--life < 0 || x < 0 || y < 0 || x > screen->w || y > screen->h)
+		{
+		delete this;
+		return;
+		}
+		
+	x += xvel; //update location
+	y += yvel;
+	if (y >= FIELD_HEIGHT * BLOCK_WIDTH || y <= 0)
+		yvel = -yvel;
+	if (x >= FIELD_WIDTH * BLOCK_WIDTH || x <= 0)
+		xvel = -xvel;
+
+	SDL_Rect rect = {x, y, 1, 1};
+	color.r = color.r * 15 / 16;
+	color.g = color.g * 15 / 16;
+	color.b = color.b * 15 / 16;
+	
+	SDL_FillRect(screen, &rect, SDL_MapRGBA(screen->format, color.r, color.g, color.b, life * 2)); //draw
+	}
