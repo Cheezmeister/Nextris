@@ -15,21 +15,27 @@ namespace nextris
 
         typedef const float Chord[6];
 
-        static Chord invRock[] = {
-            {5.0f / 6.0f, 1.0, 1.25, 5.0f / 3.0f, 2.0, 2.5},		 // i
-            {5.0f / 6.0f, 2.0f / 3.0f, 1.0, 4.0f / 3.0f, 5.0f / 3.0f, 2.0}, // VI
-            {0.75, 1.0, 1.25, 1.5, 2.0, 2.5},						// III
-            {1.125, 1.5, 1.875, 2.25, 3.0, 3.75}					  // VII
-        };
+#define CHORD_ARR_i   {5.0 / 6.0, 1.0, 1.25, 5.0 / 3.0, 2.0, 2.5}
+#define CHORD_ARR_VI  {5.0 / 6.0, 2.0 / 3.0, 1.0, 4.0 / 3.0, 5.0 / 3.0, 2.0}
+#define CHORD_ARR_III {0.75, 1.0, 1.25, 1.5, 2.0, 2.5}
+#define CHORD_ARR_VII {1.125, 1.5, 1.875, 2.25, 3.0, 3.75}
 
-        static Chord epic3[] = {
-            {5.0f / 6.0f, 2.0f / 3.0f, 1.0, 4.0f / 3.0f, 5.0f / 3.0f, 2.0}, // VI
-            {1.125, 1.5, 1.875, 2.25, 3.0, 3.75},					  // VII
-            {5.0f / 6.0f, 1.0, 1.25, 5.0f / 3.0f, 2.0, 2.5},		 // i
-            {5.0f / 6.0f, 1.0, 1.25, 5.0f / 3.0f, 2.0, 2.5}
-        };
+        static Chord invRock[] = { CHORD_ARR_i, CHORD_ARR_VI, CHORD_ARR_III, CHORD_ARR_VII };
+        static Chord epic3[] = { CHORD_ARR_VI, CHORD_ARR_VII, CHORD_ARR_i, CHORD_ARR_i };
+
+#undef CHORD_ARR_i 
+#undef CHORD_ARR_VI 
+#undef CHORD_ARR_III
+#undef CHORD_ARR_VII
 
         static const float (*chordProg)[6] = epic3;
+
+        enum ChannelEnum {
+            CHAN_FIRSTCOLUMN,
+            CHAN_LASTCOLUMN = CHAN_FIRSTCOLUMN + FIELD_WIDTH - 1,
+            CHAN_BASS,
+            CHANNELS,
+        };
 
         static const int CHANNELS = FIELD_WIDTH + 1;
         const float TONIC_FREQUENCY = 440.0F;
@@ -279,38 +285,38 @@ namespace nextris
             Uint16 beat = (ticks / ticksperbeat) % 16;;
             if (rhythm & (1 << beat) )
             {
-                toneInfo[CHANNELS - 1].right.amp = 0.1;
+                toneInfo[CHAN_BASS].right.amp = 0.1;
             }
             else
             {
-                toneInfo[CHANNELS - 1].right.amp = 0;
+                toneInfo[CHAN_BASS].right.amp = 0;
             }
             if (beat == 0)
             {
-                toneInfo[CHANNELS - 1].left.amp = 0.8;
+                toneInfo[CHAN_BASS].left.amp = 0.8;
             }
 
             int temp = (ticks / ticksperbar) % 4;
             if (chordi == temp) return;
             chordi = temp;
     
-            toneInfo[CHANNELS - 1].left.freq = TONIC_FREQUENCY * chordProg[chordi][rand() % 6] / 4;
-            toneInfo[CHANNELS - 1].right.freq = TONIC_FREQUENCY * chordProg[chordi][rand() % 6] / 4;
-    
-            toneInfo[CHANNELS - 1].left.type = WT_SIN;
-            toneInfo[CHANNELS - 1].right.type = WT_SQUARE;
+            toneInfo[CHAN_BASS].left.freq = TONIC_FREQUENCY * chordProg[chordi][rand() % 6] / 4;
+            toneInfo[CHAN_BASS].right.freq = TONIC_FREQUENCY * chordProg[chordi][rand() % 6] / 4;
 
-            toneInfo[CHANNELS - 1].left.duration = ticksperbar;
-            toneInfo[CHANNELS - 1].right.duration = ticksperbeat;
-            toneInfo[CHANNELS - 1].left.decay = DECAY_LINEAR;
-            toneInfo[CHANNELS - 1].right.decay = DECAY_LINEAR;
+            toneInfo[CHAN_BASS].left.type = WT_SIN;
+            toneInfo[CHAN_BASS].right.type = WT_SQUARE;
+
+            toneInfo[CHAN_BASS].left.duration = ticksperbar;
+            toneInfo[CHAN_BASS].right.duration = ticksperbeat;
+            toneInfo[CHAN_BASS].left.decay = DECAY_LINEAR;
+            toneInfo[CHAN_BASS].right.decay = DECAY_LINEAR;
 
 
             if (chordi == 0)
                 {
                 unsigned long temp = score;
                 rhythm = temp ^ (temp << 7) ^ (temp << 14) ^ (temp << 24);
-                rhythm &= 0x5555;
+                rhythm &= 0x5555; //always play a note on the first of every four beats
                 }
 
         }

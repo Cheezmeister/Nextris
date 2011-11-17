@@ -123,8 +123,8 @@ BouncyParticle::BouncyParticle(int X, int Y, unsigned char Color) : Particle(X, 
 	life = 100;
 	color = COLORS[Color];
 	double angle = (double)rand() / RAND_MAX * 2 * M_PI;
-	xvel = (rand() % 15) * cos(angle);
-	yvel = (rand() % 15) * sin(angle);
+	xvel = 15 * cos(angle);
+	yvel = 15 % 15) * sin(angle);
 	}
 
 BouncyParticle::~BouncyParticle()
