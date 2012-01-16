@@ -34,10 +34,11 @@ namespace nextris
             CHAN_FIRSTCOLUMN,
             CHAN_LASTCOLUMN = CHAN_FIRSTCOLUMN + FIELD_WIDTH - 1,
             CHAN_BASS,
+            CHAN_PERC,
             CHANNELS,
         };
 
-        static const int CHANNELS = FIELD_WIDTH + 1;
+//        static const int CHANNELS = FIELD_WIDTH + 1;
         const float TONIC_FREQUENCY = 440.0F;
         static const int BPM = 160;
 
@@ -47,7 +48,8 @@ namespace nextris
             WT_SIN,
             WT_SQUARE,
             WT_TRIANGLE,
-            WT_SAWTOOTH
+            WT_SAWTOOTH,
+            WT_NOISE,
         } WaveType;
         typedef enum _Decay {
             DECAY_NONE,
@@ -102,6 +104,8 @@ namespace nextris
             if (tone.type == WT_SQUARE)
                 return tone.amp * (tone.phase < M_PI ? 1 : -1)  / 2.0f;
             return 0;
+            if (tone.type == WT_NOISE)
+                return tone.amp * noise(0.0, 1.0);
         }
 
         static int nextris_pa_callback( const void *inputBuffer, void *outputBuffer,
@@ -240,21 +244,22 @@ namespace nextris
         }
 
         //stolen from http://www.dspguru.com/dsp/howtos/how-to-generate-white-gaussian-noise
-        float noise()
+        float noise(float mean, float variance)
         {
             float U1, U2, V1, V2, S, X, Y;
             do
             {
-                U1 = fabs(rand() / (float)INT_MAX);            /* U1=[0,1] */
-                U2 = fabs(rand() / (float)INT_MAX);            /* U2=[0,1] */
+                U1 = fabs((float)rand() / (float)0x7fff);            /* U1=[0,1] */
+                U2 = fabs((float)rand() / (float)0x7fff);            /* U2=[0,1] */
                 V1 = 2 * U1 - 1;           /* V1=[-1,1] */
                 V2 = 2 * U2 - 1;           /* V2=[-1,1] */
-                S = V1 * V1 + V2 * V2;
+                 S = V1 * V1 + V2 * V2;
             } while (S >= 1);
     
            X = sqrt(-2 * log(S) / S) * V1;
-           Y = sqrt(-2 * log(S) / S) * V2;
-           return X;
+           //Y = sqrt(-2 * log(S) / S) * V2;
+
+           return mean + sqrt(variance) * X;
         }
 
 
@@ -267,12 +272,20 @@ namespace nextris
 
 
 
+        void update_percs(unsigned long score)
+        {
+            toneInfo[CHAN_PERC].left.freq = noise(0, 1);
+            toneInfo[CHAN_PERC].right.freq = noise(0, 1);
+            toneInfo[CHAN_PERC].left.amp = 0.1;
+            toneInfo[CHAN_PERC].right.amp = 0.1;
+        }
 
         void update_bassline(unsigned long score)
         {
             if (!inited || paerr != paNoError)
                 return;
 
+            //update_percs(score);
             Uint32 ticks = SDL_GetTicks();
 
             chordProg = epic3;
@@ -316,7 +329,7 @@ namespace nextris
                 {
                 unsigned long temp = score;
                 rhythm = temp ^ (temp << 7) ^ (temp << 14) ^ (temp << 24);
-                rhythm &= 0x5555; //always play a note on the first of every four beats
+                rhythm |= 0x5555; //always play a note on the first of every four beats
                 }
 
         }
