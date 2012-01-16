@@ -6,6 +6,7 @@ Field::Field()
 	stepInterval = DEFAULT_INTERVAL;
 	paused = false;
 	harddrop = false;
+    warpdrop = false;
 	pushBlocks = true;
 	fail = false;
 	clearing = false;
@@ -71,6 +72,8 @@ void Field::handleEvent(SDL_Event* evt)
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_RIGHT)
 		if (activeQuad)
 			activeQuad->moveRight();
+    //immediate drop
+    if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_UP)
 	}
 
 void Field::handleInput(Uint8* keystate)
@@ -103,7 +106,7 @@ void Field::step()
 		}
 	
 	//only force falling once an interval
-	if ((!harddrop && (frame % stepInterval)) || paused || clearing)
+	if ((!harddrop && !warpdrop && (frame % stepInterval)) || paused || clearing)
 		{
 		cdebug << "Skipping Field::step()\n";
 		return;
@@ -123,15 +126,20 @@ void Field::step()
 		}
 
 	//drop the current tetra
-	int result = activeQuad->fall();
-	if (result)
-		{
-		if (result == NO_ROOM)
-			fail = true;
-		pushBlocks = true;
-		activeQuad = NULL;
-		}
+    do
+        {
+	    int result = activeQuad->fall();
+	    if (result)
+		    {
+		    if (result == NO_ROOM)
+			    fail = true;
+		    pushBlocks = true;
+		    activeQuad = NULL;
+            warpdrop = false;
+		    }
+        } while (warpdrop);
 	harddrop = false;
+    
 
 	cdebug << "Exiting Field::step()\n";
 	}

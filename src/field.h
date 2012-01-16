@@ -23,6 +23,7 @@ class Field
 		unsigned char skillLevel;
 		bool paused;     //did the player pause?
 		bool harddrop;   //is the player forcing blocks to fall?
+		bool warpdrop;   //do we need to warp the block straight to the bottom?
 		bool pushBlocks; //do we need to deploy the next tetra?
 		bool fail;       //did the player lose?
 		bool clearing;   //are we in the process of clearing blocks?
