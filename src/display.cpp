@@ -1,6 +1,7 @@
 #include <cmath>
 #include "display.h"
 
+
 static std::list<Particle*> ppool;
 		
 void draw(SDL_Surface* screen)

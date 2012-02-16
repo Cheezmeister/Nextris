@@ -6,7 +6,7 @@ Field::Field()
 	stepInterval = DEFAULT_INTERVAL;
 	paused = false;
 	harddrop = false;
-    warpdrop = false;
+	warpdrop = false;
 	pushBlocks = true;
 	fail = false;
 	clearing = false;
@@ -72,8 +72,9 @@ void Field::handleEvent(SDL_Event* evt)
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_RIGHT)
 		if (activeQuad)
 			activeQuad->moveRight();
-    //immediate drop
-    if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_UP)
+	//immediate drop
+	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_w)
+		warpdrop = true;
 	}
 
 void Field::handleInput(Uint8* keystate)
@@ -126,20 +127,20 @@ void Field::step()
 		}
 
 	//drop the current tetra
-    do
-        {
-	    int result = activeQuad->fall();
-	    if (result)
-		    {
-		    if (result == NO_ROOM)
-			    fail = true;
-		    pushBlocks = true;
-		    activeQuad = NULL;
-            warpdrop = false;
-		    }
-        } while (warpdrop);
-	harddrop = false;
-    
+	do
+		{
+		int result = activeQuad->fall();
+		if (result)
+			{
+			if (result == NO_ROOM)
+				fail = true;
+			pushBlocks = true;
+			activeQuad = NULL;
+			warpdrop = false;
+			}
+		} while (warpdrop);
+	harddrop = warpdrop = false;
+	
 
 	cdebug << "Exiting Field::step()\n";
 	}
@@ -225,9 +226,9 @@ int Field::chunkFall()
 	for (unsigned int i = 0; i < falling.size(); ++i)
 		{
 		if (falling[i].fall() )
-		    {
-		    std::vector<Region>::iterator it = falling.begin();
-		    for (unsigned int j = 0; j < i; ++j)
+			{
+			std::vector<Region>::iterator it = falling.begin();
+			for (unsigned int j = 0; j < i; ++j)
 				++it;
 			falling.erase(it);
 			}
