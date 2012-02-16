@@ -1,4 +1,5 @@
 #include "display.h"
+#include <cmath>
 
 static std::list<Particle*> ppool;
 		
@@ -124,7 +125,7 @@ BouncyParticle::BouncyParticle(int X, int Y, unsigned char Color) : Particle(X, 
 	color = COLORS[Color];
 	double angle = (double)rand() / RAND_MAX * 2 * M_PI;
 	xvel = 15 * cos(angle);
-	yvel = 15 % 15) * sin(angle);
+	yvel =  5 * sin(angle);
 	}
 
 BouncyParticle::~BouncyParticle()
