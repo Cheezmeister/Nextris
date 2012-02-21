@@ -35,6 +35,7 @@ namespace nextris
             CHAN_LASTCOLUMN = CHAN_FIRSTCOLUMN + FIELD_WIDTH - 1,
             CHAN_BASS,
             CHAN_PERC,
+            CHAN_PAD,
             CHANNELS,
         };
 
@@ -54,6 +55,7 @@ namespace nextris
         typedef enum _Decay {
             DECAY_NONE,
             DECAY_LINEAR,
+            DECAY_PARABOLIC,
             //DECAY_EXP,
             //DECAY_REVERSE_LINEAR,
             //DECAY_REVERSE_EXP,
@@ -61,19 +63,26 @@ namespace nextris
 
         typedef struct _ToneInfo
         {
+            // "public" specifications
             WaveType type;
             Decay decay;
-            float time;
             float freq;
             float amp;
             float duration;
+            // "private" time-dependent fields
             float phase;
+            float current_amp;
+            float time;
         } ToneInfo;
 
-        typedef struct _StereoToneInfo
+        typedef union _StereoToneInfo
         {
-            ToneInfo left;
-            ToneInfo right;
+            ToneInfo arr[2];
+            struct 
+            {
+                ToneInfo left;
+                ToneInfo right;
+            } channel;
         } StereoToneInfo;
 
         //housekeeping
@@ -95,17 +104,17 @@ namespace nextris
         float wave_value(const ToneInfo& tone)
         {
             if (tone.type == WT_SIN)
-                return tone.amp * sin(tone.phase) / (float)CHANNELS;
+                return tone.current_amp * sin(tone.phase) / (float)CHANNELS;
             if (tone.type == WT_SAWTOOTH)
-                return tone.amp * ((tone.phase-M_PI) / M_PI - 1) / 2.0f;
+                return tone.current_amp * ((tone.phase-M_PI) / M_PI - 1) / 2.0f;
             if (tone.type == WT_TRIANGLE)
-                return tone.amp * (4 * tone.phase / (M_PI*2))
+                return tone.current_amp * (4 * tone.phase / (M_PI*2))
                             - 4 * (clamp<float>(tone.phase, M_PI/2.0f, 3.0f*M_PI/2.0f) - M_PI/2.0f);
             if (tone.type == WT_SQUARE)
-                return tone.amp * (tone.phase < M_PI ? 1 : -1)  / 2.0f;
+                return tone.current_amp * (tone.phase < M_PI ? 1 : -1)  / 2.0f;
             return 0;
             if (tone.type == WT_NOISE)
-                return tone.amp * noise(0.0, 1.0);
+                return tone.current_amp * noise(0.0, 1.0);
         }
 
         static int nextris_pa_callback( const void *inputBuffer, void *outputBuffer,
@@ -134,58 +143,47 @@ namespace nextris
                 for (int j = 0; j < CHANNELS; ++j)
                 {
                     StereoToneInfo* data = toneArr + j;
-                    if (data->left.amp + data->right.amp == 0)
+                    if (data->channel.left.amp + data->channel.right.amp == 0)
                         continue;
 
-                    out[0] += wave_value(data->left); 
-                    out[1] += wave_value(data->right);
+                    out[0] += wave_value(data->channel.left); 
+                    out[1] += wave_value(data->channel.right);
             
-                    data->left.time += 1.0 / SAMPLE_RATE;
-                    data->right.time += 1.0 / SAMPLE_RATE;
+                    data->channel.left.time += 1.0 / SAMPLE_RATE;
+                    data->channel.right.time += 1.0 / SAMPLE_RATE;
 
 
                     // update amplitude
-                    if (data->left.decay == DECAY_NONE)
+                    for (int i = 0; i < 2; ++i)
                     {
-                        if (data->left.time > data->left.duration)
+                        ToneInfo& ti = data->arr[i];
+                        if (ti.decay == DECAY_NONE)
                         {
-                            data->left.amp = 0;
-                            data->left.time = 0;
+                            ti.current_amp = ti.amp;
+                            if (ti.time > ti.duration)
+                            {
+                                ti.amp = 0;
+                                ti.time = 0;
+                            }
+                        }
+                        else if (ti.decay == DECAY_LINEAR)
+                        {
+                            ti.current_amp = ti.amp * (1 - ti.time / ti.duration);
+                            if (ti.current_amp < 0)
+                            {
+                                ti.amp = 0;
+                                ti.time = 0;
+                            }
                         }
                     }
-                    else if (data->left.decay == DECAY_LINEAR)
-                    {
-                        data->left.amp -= .9 / SAMPLE_RATE;
-                        if (data->left.amp < 0)
-                        {
-                            data->left.amp = 0;
-                            data->left.time = 0;
-                        }
-                    }
-                    if (data->right.decay == DECAY_NONE)
-                    {
-                        if (data->right.time > data->right.duration)
-                        {
-                            data->right.amp = 0;
-                            data->right.time = 0;
-                        }
-                    }
-                    else if (data->right.decay == DECAY_LINEAR)
-                    {
-                        data->right.amp -= .9 / SAMPLE_RATE;
-                        if (data->right.amp < 0)
-                        {
-                            data->right.amp = 0;
-                            data->right.time = 0;
-                        }
-                    }
+                    
             
                     // update phase
-                    data->left.phase += M_PI * 2 * data->left.freq / SAMPLE_RATE;
-                    data->right.phase += M_PI * 2 * data->right.freq / SAMPLE_RATE;
+                    data->channel.left.phase += M_PI * 2 * data->channel.left.freq / SAMPLE_RATE;
+                    data->channel.right.phase += M_PI * 2 * data->channel.right.freq / SAMPLE_RATE;
     
-                    if( data->left.phase >= M_PI * 2) data->left.phase -= M_PI * 2;
-                    if( data->right.phase >= M_PI * 2) data->right.phase -= M_PI * 2;
+                    if( data->channel.left.phase >= M_PI * 2) data->channel.left.phase -= M_PI * 2;
+                    if( data->channel.right.phase >= M_PI * 2) data->channel.right.phase -= M_PI * 2;
 
             
                 }
@@ -270,14 +268,29 @@ namespace nextris
 
 
 
+        void update_pads(unsigned long score)
+        {
+            int i = score % 6;
+            toneInfo[CHAN_PAD].channel.left.type = WT_SIN;
+            toneInfo[CHAN_PAD].channel.right.type = WT_SIN;
+            toneInfo[CHAN_PAD].channel.left.freq = TONIC_FREQUENCY * chordProg[chordi][i];
+            toneInfo[CHAN_PAD].channel.right.freq = TONIC_FREQUENCY * chordProg[chordi][i] * 1.02;
+            toneInfo[CHAN_PAD].channel.left.amp = 0.4;
+            toneInfo[CHAN_PAD].channel.right.amp = 0.4;
 
+            toneInfo[CHAN_PAD].channel.left.duration = 1000.0;
+            toneInfo[CHAN_PAD].channel.right.duration = 1000.0;
+            toneInfo[CHAN_PAD].channel.left.decay = DECAY_LINEAR;
+            toneInfo[CHAN_PAD].channel.right.decay = DECAY_LINEAR;
+
+        }
 
         void update_percs(unsigned long score)
         {
-            toneInfo[CHAN_PERC].left.freq = noise(0, 1);
-            toneInfo[CHAN_PERC].right.freq = noise(0, 1);
-            toneInfo[CHAN_PERC].left.amp = 0.1;
-            toneInfo[CHAN_PERC].right.amp = 0.1;
+            toneInfo[CHAN_PERC].channel.left.freq = noise(0, 1);
+            toneInfo[CHAN_PERC].channel.right.freq = noise(0, 1);
+            toneInfo[CHAN_PERC].channel.left.amp = 0.1;
+            toneInfo[CHAN_PERC].channel.right.amp = 0.1;
         }
 
         void update_bassline(unsigned long score)
@@ -285,6 +298,7 @@ namespace nextris
             if (!inited || paerr != paNoError)
                 return;
 
+            update_pads(score);
             //update_percs(score);
             Uint32 ticks = SDL_GetTicks();
 
@@ -298,31 +312,31 @@ namespace nextris
             Uint16 beat = (ticks / ticksperbeat) % 16;;
             if (rhythm & (1 << beat) )
             {
-                toneInfo[CHAN_BASS].right.amp = 0.1;
+                toneInfo[CHAN_BASS].channel.right.amp = 0.1;
             }
             else
             {
-                toneInfo[CHAN_BASS].right.amp = 0;
+                toneInfo[CHAN_BASS].channel.right.amp = 0;
             }
             if (beat == 0)
             {
-                toneInfo[CHAN_BASS].left.amp = 0.8;
+                toneInfo[CHAN_BASS].channel.left.amp = 0.8;
             }
 
             int temp = (ticks / ticksperbar) % 4;
             if (chordi == temp) return;
             chordi = temp;
     
-            toneInfo[CHAN_BASS].left.freq = TONIC_FREQUENCY * chordProg[chordi][rand() % 6] / 4;
-            toneInfo[CHAN_BASS].right.freq = TONIC_FREQUENCY * chordProg[chordi][rand() % 6] / 4;
+            toneInfo[CHAN_BASS].channel.left.freq = TONIC_FREQUENCY * chordProg[chordi][rand() % 6] / 4;
+            toneInfo[CHAN_BASS].channel.right.freq = TONIC_FREQUENCY * chordProg[chordi][rand() % 6] / 4;
 
-            toneInfo[CHAN_BASS].left.type = WT_SIN;
-            toneInfo[CHAN_BASS].right.type = WT_SQUARE;
+            toneInfo[CHAN_BASS].channel.left.type = WT_SIN;
+            toneInfo[CHAN_BASS].channel.right.type = WT_SQUARE;
 
-            toneInfo[CHAN_BASS].left.duration = ticksperbar;
-            toneInfo[CHAN_BASS].right.duration = ticksperbeat;
-            toneInfo[CHAN_BASS].left.decay = DECAY_LINEAR;
-            toneInfo[CHAN_BASS].right.decay = DECAY_LINEAR;
+            toneInfo[CHAN_BASS].channel.left.duration = ticksperbar;
+            toneInfo[CHAN_BASS].channel.right.duration = ticksperbeat;
+            toneInfo[CHAN_BASS].channel.left.decay = DECAY_LINEAR;
+            toneInfo[CHAN_BASS].channel.right.decay = DECAY_LINEAR;
 
 
             if (chordi == 0)
@@ -347,32 +361,32 @@ namespace nextris
 
             if (what == SND_SHIFTLEFT || what == SND_SHIFTRIGHT)
             {
-                toneInfo[column].left.type = WT_SQUARE;
-                toneInfo[column].right.type = WT_SQUARE;
+                toneInfo[column].channel.left.type = WT_SQUARE;
+                toneInfo[column].channel.right.type = WT_SQUARE;
 
-                toneInfo[column].left.freq = TONIC_FREQUENCY * chordProg[i][0] / 2;
-                toneInfo[column].right.freq = TONIC_FREQUENCY * chordProg[i][5] / 2;
+                toneInfo[column].channel.left.freq = TONIC_FREQUENCY * chordProg[i][0] / 2;
+                toneInfo[column].channel.right.freq = TONIC_FREQUENCY * chordProg[i][5] / 2;
                 
-                toneInfo[column].left.duration = 0.05;
-                toneInfo[column].right.duration = 0.05;
-                toneInfo[column].right.decay = DECAY_NONE;
-                toneInfo[column].left.decay = DECAY_NONE;
-                toneInfo[column].right.amp = (float)column / (float)FIELD_WIDTH / 10.0;
-                toneInfo[column].left.amp = 0.1 - toneInfo[column].left.amp;
+                toneInfo[column].channel.left.duration = 0.05;
+                toneInfo[column].channel.right.duration = 0.05;
+                toneInfo[column].channel.right.decay = DECAY_NONE;
+                toneInfo[column].channel.left.decay = DECAY_NONE;
+                toneInfo[column].channel.right.amp = (float)column / (float)FIELD_WIDTH / 10.0;
+                toneInfo[column].channel.left.amp = 0.1 - toneInfo[column].channel.right.amp;
             }
             else if (what == SND_ASPLOADED)
             {
-                toneInfo[column].left.type = WT_SIN;
-                toneInfo[column].right.type = WT_SIN;
+                toneInfo[column].channel.left.type = WT_SIN;
+                toneInfo[column].channel.right.type = WT_SIN;
 
-                toneInfo[column].left.freq = TONIC_FREQUENCY * chordProg[i][color];
-                toneInfo[column].right.freq = TONIC_FREQUENCY * chordProg[i][color];
-                toneInfo[column].left.duration = 1000;
-                toneInfo[column].right.duration = 1000;
-                toneInfo[column].right.decay = DECAY_LINEAR;
-                toneInfo[column].left.decay = DECAY_LINEAR;
-                toneInfo[column].right.amp = (float)column / (float)FIELD_WIDTH;
-                toneInfo[column].left.amp = 1.0 - toneInfo[column].left.amp;
+                toneInfo[column].channel.left.freq = TONIC_FREQUENCY * chordProg[i][color];
+                toneInfo[column].channel.right.freq = TONIC_FREQUENCY * chordProg[i][color];
+                toneInfo[column].channel.left.duration = 1.0;
+                toneInfo[column].channel.right.duration = 1.0;
+                toneInfo[column].channel.right.decay = DECAY_LINEAR;
+                toneInfo[column].channel.left.decay = DECAY_LINEAR;
+                toneInfo[column].channel.right.amp = (float)column / (float)FIELD_WIDTH;
+                toneInfo[column].channel.left.amp = 1.0 - toneInfo[column].channel.left.amp;
             }
             else
                 return;
