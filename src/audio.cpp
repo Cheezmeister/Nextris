@@ -1,6 +1,17 @@
 #include "audio.h"
 
-#ifdef HAVE_PORTAUDIO
+#ifndef HAVE_PORTAUDIO
+namespace nextris
+{
+    namespace audio
+    {
+        void init() { }
+        void play_sound(int color, int column, int row, int what) { }
+        void update_bassline(unsigned long score) { }
+    }
+}
+#else // HAVE_PORTAUDIO
+
 #include <cmath>
 #include "SDL.h"
 #include "field.h"
@@ -28,20 +39,24 @@ namespace nextris
 #undef CHORD_ARR_III
 #undef CHORD_ARR_VII
 
-        static const float (*chordProg)[6] = epic3;
+        static const float (*chordProg)[6] = invRock;
 
         enum ChannelEnum {
             CHAN_FIRSTCOLUMN,
             CHAN_LASTCOLUMN = CHAN_FIRSTCOLUMN + FIELD_WIDTH - 1,
-            CHAN_BASS,
-            CHAN_PERC,
             CHAN_PAD,
+            CHAN_PERC,
+            CHAN_BASS,
             CHANNELS,
         };
 
 //        static const int CHANNELS = FIELD_WIDTH + 1;
         const float TONIC_FREQUENCY = 440.0F;
         static const int BPM = 160;
+        static const Uint16 barspermin = BPM / 4; 
+        static const Uint16 ticksperbar = 60 * 1000 / barspermin;
+        static const Uint16 ticksperbeat = ticksperbar / 16;
+
 
 
         const int SAMPLE_RATE = 44100;
@@ -175,6 +190,18 @@ namespace nextris
                                 ti.time = 0;
                             }
                         }
+                        else if (ti.decay == DECAY_PARABOLIC)
+                        {
+                            float x2 = (ti.time - ti.duration / 2 ) * (ti.time - ti.duration / 2);
+                            float par = 1 - x2 * 4 / (ti.duration * ti.duration);
+                            ti.current_amp = ti.amp * par;
+                        }
+
+                        if (ti.current_amp < 0)
+                        {
+                            ti.amp = 0;
+                            ti.time = 0;
+                        }
                     }
                     
             
@@ -270,18 +297,18 @@ namespace nextris
 
         void update_pads(unsigned long score)
         {
-            int i = score % 6;
+            int i = 3;
             toneInfo[CHAN_PAD].channel.left.type = WT_SIN;
             toneInfo[CHAN_PAD].channel.right.type = WT_SIN;
             toneInfo[CHAN_PAD].channel.left.freq = TONIC_FREQUENCY * chordProg[chordi][i];
-            toneInfo[CHAN_PAD].channel.right.freq = TONIC_FREQUENCY * chordProg[chordi][i] * 1.02;
+            toneInfo[CHAN_PAD].channel.right.freq = TONIC_FREQUENCY * chordProg[chordi][i] * 1.01;
             toneInfo[CHAN_PAD].channel.left.amp = 0.4;
             toneInfo[CHAN_PAD].channel.right.amp = 0.4;
 
-            toneInfo[CHAN_PAD].channel.left.duration = 1000.0;
-            toneInfo[CHAN_PAD].channel.right.duration = 1000.0;
-            toneInfo[CHAN_PAD].channel.left.decay = DECAY_LINEAR;
-            toneInfo[CHAN_PAD].channel.right.decay = DECAY_LINEAR;
+            toneInfo[CHAN_PAD].channel.left.duration = ticksperbar / 1000.0;
+            toneInfo[CHAN_PAD].channel.right.duration = ticksperbar / 1000.0;
+            toneInfo[CHAN_PAD].channel.left.decay = DECAY_PARABOLIC;
+            toneInfo[CHAN_PAD].channel.right.decay = DECAY_PARABOLIC;
 
         }
 
@@ -301,13 +328,6 @@ namespace nextris
             update_pads(score);
             //update_percs(score);
             Uint32 ticks = SDL_GetTicks();
-
-            chordProg = epic3;
-
-
-            const Uint16 barspermin = BPM / 4; 
-            const Uint16 ticksperbar = 60 * 1000 / barspermin;
-            const Uint16 ticksperbeat = ticksperbar / 16;
 
             Uint16 beat = (ticks / ticksperbeat) % 16;;
             if (rhythm & (1 << beat) )
@@ -392,16 +412,6 @@ namespace nextris
                 return;
 
         }
-    }
-}
-#else
-namespace nextris
-{
-    namespace audio
-    {
-        void init() { }
-        void play_sound(int color, int column, int row, int what) { }
-        void update_bassline(unsigned long score) { }
     }
 }
 #endif

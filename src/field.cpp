@@ -1,5 +1,7 @@
 #include "field.h"
 
+const int MOVE_DELAY = 4; //keypress delay in frames
+
 Field::Field()
 	{
 	//screen = Screen;
@@ -14,6 +16,7 @@ Field::Field()
 	chunking = false;
 	skillLevel = DEFAULT_SKILL;
 	frame = 0;
+	moveTimer = 0;
 
 	//ablsolutely disgusting allocation.
 	grid = new Block**[FIELD_WIDTH];
@@ -54,24 +57,22 @@ void Field::handleEvent(SDL_Event* evt)
 	//pause game
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_PAUSE)
 		paused = !paused;
-	if (paused)
+	if (paused) 
+		return;
+	if (!activeQuad) 
 		return;
 	//rotate right
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_B)
-		if (activeQuad)
-			activeQuad->rotateLeft();
+		activeQuad->rotateLeft();
 	//rotate left
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_A)
-		if (activeQuad)
-			activeQuad->rotateRight();
+		activeQuad->rotateRight();
 	//move left
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_LEFT)
-		if (activeQuad)
-			activeQuad->moveLeft();
+		moveTimer = MOVE_DELAY, activeQuad->moveLeft();
 	//move right
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_RIGHT)
-		if (activeQuad)
-			activeQuad->moveRight();
+		moveTimer = MOVE_DELAY, activeQuad->moveRight();
 	//immediate drop
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_w)
 		warpdrop = true;
@@ -81,8 +82,14 @@ void Field::handleInput(Uint8* keystate)
 	{
 	if (paused)
 		return;
-	if (keystate[USRKEY_UP])
+	if (moveTimer > 0)
+		--moveTimer;
+	if (moveTimer == 0 && activeQuad)
 		{
+		if (keystate[USRKEY_LEFT])
+			activeQuad->moveLeft();
+		if (keystate[USRKEY_RIGHT])
+			activeQuad->moveRight();
 		}
 	if (keystate[USRKEY_DOWN])
 		{
@@ -132,6 +139,8 @@ void Field::step()
 		int result = activeQuad->fall();
 		if (result)
 			{
+			if (warpdrop)
+				activeQuad->poomp();
 			if (result == NO_ROOM)
 				fail = true;
 			pushBlocks = true;

@@ -87,6 +87,8 @@ class Block
 		unsigned char getColor();
 		//signify the block is no longer moving
 		void deactivate();
+		//make particles on warp drop
+		void poomp();
 		//return the x location, independent of width in pixels
 		int getX();
 		//return the y location, independent of width in pixels
@@ -116,6 +118,7 @@ class Quad
 		Quad(int X, int Y, Block*** Grid, unsigned char level);
 		~Quad();
 		int fall();
+		void poomp();
 		void rotateLeft();
 		void rotateRight();
 		void moveLeft();

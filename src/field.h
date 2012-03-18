@@ -30,11 +30,13 @@ class Field
 		bool cascading;  //are blocks cascading?
 		bool chunking;   //are blocks falling in chunks (regions)?
 		int chain;       //are we in the middle of a chain?
+		Uint32 moveTimer; //key press timer for left and right
 		//SDL_Surface* screen;
 		Quad* activeQuad, *nextQuad;
 		Block*** grid;
 		std::vector<Region> falling;
 
+		//Why is this a singleton? Lawl!
 		Field();
 		void identifyRegion(std::vector<Coord>& region, Coord orig, unsigned char color = 255);
 		void rowclear();

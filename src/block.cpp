@@ -56,13 +56,6 @@ int Block::fall(Block*** grid)
 	
 	if (!blocked((const Block***)grid) )
 		{
-//		if (!active)
-//			{
-//			cdebug << "Switching pointer to " << getX() << ", " << getY() << "\n";
-//			grid[getX()][getY()] = this;
-//			if (getY() )
-//				grid[getX()][getY() - 1] = NULL;
-//			}
 		return 0;
 		}
 	cdebug << "Blocked!\n";
@@ -112,17 +105,17 @@ void Block::display(SDL_Surface* screen)
 		if (bb < COLORS[color].b)
 			bb += 510 / mask.w;
 		SDL_FillRect(screen, &bmask, SDL_MapRGB( screen->format,
-												 br,
-												 bg,
-												 bb ) );
+		                                        br,
+		                                        bg,
+		                                        bb ) );
 		}
 
 	if (br)
-			br = 255;
+		br = 255;
 	if (bg)
-			bg = 255;
+		bg = 255;
 	if (bb)
-			bb = 255;
+		bb = 255;
 	}
 
 unsigned char Block::getColor()
@@ -133,6 +126,9 @@ unsigned char Block::getColor()
 void Block::deactivate()
 	{
 	active = false;
+	}
+void Block::poomp()
+	{
 	for (int i = 0; i < PARTICLINESS; ++i)
 		{
 		BouncyParticle::createBouncyParticle(mask.x + BLOCK_WIDTH / 2, mask.y + BLOCK_WIDTH / 2, color);
@@ -178,7 +174,6 @@ void Block::condemn()
 	}
 	
 //Quad
-
 Quad::Quad(int X, int Y, Block*** Grid, unsigned char level) : shape(rand() % N_SHAPES)
 	{
 	//shape = rand() % 7;
@@ -272,6 +267,13 @@ int Quad::fall()
 	return FELL_OKAY;
 	}
 
+void Quad::poomp()
+	{
+	master->poomp();
+	slave1->poomp();
+	slave2->poomp();
+	slave3->poomp();
+	}
 void Quad::rotateLeft()
 	{
 	if (shape == SHAPE_O)
@@ -436,13 +438,25 @@ void Quad::display(SDL_Surface* screen, bool dropshadow)
 	if (dropshadow)
 		{
 		SDL_Rect shadow;
-		shadow.x = master->getX() * BLOCK_WIDTH; shadow.y = master->getY() * BLOCK_WIDTH; shadow.w = BLOCK_WIDTH; shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
+		shadow.x = master->getX() * BLOCK_WIDTH;
+		shadow.y = master->getY() * BLOCK_WIDTH;
+		shadow.w = BLOCK_WIDTH;
+		shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
 		SDL_FillRect(screen, &shadow, FADE_COLOR(SDLtoU32(COLORS[master->getColor()]) ));
-		shadow.x = slave1->getX() * BLOCK_WIDTH; shadow.y = slave1->getY() * BLOCK_WIDTH; shadow.w = BLOCK_WIDTH; shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
+		shadow.x = slave1->getX() * BLOCK_WIDTH; 
+		shadow.y = slave1->getY() * BLOCK_WIDTH;
+		shadow.w = BLOCK_WIDTH;
+		shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
 		SDL_FillRect(screen, &shadow, FADE_COLOR(SDLtoU32(COLORS[slave1->getColor()]) ));
-		shadow.x = slave2->getX() * BLOCK_WIDTH; shadow.y = slave2->getY() * BLOCK_WIDTH; shadow.w = BLOCK_WIDTH; shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
+		shadow.x = slave2->getX() * BLOCK_WIDTH;
+		shadow.y = slave2->getY() * BLOCK_WIDTH;
+		shadow.w = BLOCK_WIDTH;
+		shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
 		SDL_FillRect(screen, &shadow, FADE_COLOR(SDLtoU32(COLORS[slave2->getColor()]) ));
-		shadow.x = slave3->getX() * BLOCK_WIDTH; shadow.y = slave3->getY() * BLOCK_WIDTH; shadow.w = BLOCK_WIDTH; shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
+		shadow.x = slave3->getX() * BLOCK_WIDTH;
+		shadow.y = slave3->getY() * BLOCK_WIDTH;
+		shadow.w = BLOCK_WIDTH;
+		shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
 		SDL_FillRect(screen, &shadow, FADE_COLOR(SDLtoU32(COLORS[slave3->getColor()]) ));
 		}
 	master->display(screen);
