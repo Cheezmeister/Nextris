@@ -297,7 +297,7 @@ namespace nextris
 
         void update_pads(unsigned long score)
         {
-            int i = 3;
+            int i = score % 6;
             toneInfo[CHAN_PAD].channel.left.type = WT_SIN;
             toneInfo[CHAN_PAD].channel.right.type = WT_SIN;
             toneInfo[CHAN_PAD].channel.left.freq = TONIC_FREQUENCY * chordProg[chordi][i];
@@ -329,6 +329,9 @@ namespace nextris
             //update_percs(score);
             Uint32 ticks = SDL_GetTicks();
 
+            const Uint16 barspermin = BPM / 4; 
+            const Uint16 ticksperbar = 60 * 1000 / barspermin;
+            const Uint16 ticksperbeat = ticksperbar / 16;
             Uint16 beat = (ticks / ticksperbeat) % 16;;
             if (rhythm & (1 << beat) )
             {
