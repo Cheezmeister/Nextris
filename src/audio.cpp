@@ -320,6 +320,9 @@ namespace nextris
             //update_percs(score);
             Uint32 ticks = SDL_GetTicks();
 
+            const Uint16 barspermin = BPM / 4; 
+            const Uint16 ticksperbar = 60 * 1000 / barspermin;
+            const Uint16 ticksperbeat = ticksperbar / 16;
             Uint16 beat = (ticks / ticksperbeat) % 16;;
             if (rhythm & (1 << beat) )
             {
