@@ -1,4 +1,3 @@
-
 namespace nextris
 {
     namespace audio
