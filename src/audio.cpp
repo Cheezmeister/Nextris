@@ -105,6 +105,7 @@ namespace nextris
         static PaStream* stream = NULL;
         static bool inited = false;
 
+        //grand staff ;)
         static StereoToneInfo toneInfo[CHANNELS]; //wave info
         static int chordi = 0; //chord index
         static Uint16 rhythm = 0x0000; //bitstring for bass rhythm
@@ -175,20 +176,10 @@ namespace nextris
                         if (ti.decay == DECAY_NONE)
                         {
                             ti.current_amp = ti.amp;
-                            if (ti.time > ti.duration)
-                            {
-                                ti.amp = 0;
-                                ti.time = 0;
-                            }
                         }
                         else if (ti.decay == DECAY_LINEAR)
                         {
                             ti.current_amp = ti.amp * (1 - ti.time / ti.duration);
-                            if (ti.current_amp < 0)
-                            {
-                                ti.amp = 0;
-                                ti.time = 0;
-                            }
                         }
                         else if (ti.decay == DECAY_PARABOLIC)
                         {
@@ -197,10 +188,10 @@ namespace nextris
                             ti.current_amp = ti.amp * par;
                         }
 
-                        if (ti.current_amp < 0)
+                        // check if done with this note
+                        if (ti.time > ti.duration || ti.current_amp < 0)
                         {
-                            ti.amp = 0;
-                            ti.time = 0;
+                            ti.amp = ti.current_amp = ti.time = 0;
                         }
                     }
                     
@@ -297,7 +288,7 @@ namespace nextris
 
         void update_pads(unsigned long score)
         {
-            int i = 3;
+            int i = score % 60 / 10;
             toneInfo[CHAN_PAD].channel.left.type = WT_SIN;
             toneInfo[CHAN_PAD].channel.right.type = WT_SIN;
             toneInfo[CHAN_PAD].channel.left.freq = TONIC_FREQUENCY * chordProg[chordi][i];
@@ -332,7 +323,7 @@ namespace nextris
             Uint16 beat = (ticks / ticksperbeat) % 16;;
             if (rhythm & (1 << beat) )
             {
-                toneInfo[CHAN_BASS].channel.right.amp = 0.1;
+                toneInfo[CHAN_BASS].channel.right.amp = 0.2;
             }
             else
             {
@@ -343,9 +334,9 @@ namespace nextris
                 toneInfo[CHAN_BASS].channel.left.amp = 0.8;
             }
 
-            int temp = (ticks / ticksperbar) % 4;
-            if (chordi == temp) return;
-            chordi = temp;
+            int newchord = (ticks / ticksperbar) % 4;
+            if (chordi == newchord) return;
+            chordi = newchord;
     
             toneInfo[CHAN_BASS].channel.left.freq = TONIC_FREQUENCY * chordProg[chordi][rand() % 6] / 4;
             toneInfo[CHAN_BASS].channel.right.freq = TONIC_FREQUENCY * chordProg[chordi][rand() % 6] / 4;
@@ -353,8 +344,8 @@ namespace nextris
             toneInfo[CHAN_BASS].channel.left.type = WT_SIN;
             toneInfo[CHAN_BASS].channel.right.type = WT_SQUARE;
 
-            toneInfo[CHAN_BASS].channel.left.duration = ticksperbar;
-            toneInfo[CHAN_BASS].channel.right.duration = ticksperbeat;
+            toneInfo[CHAN_BASS].channel.left.duration = ticksperbar / 1000.0f;
+            toneInfo[CHAN_BASS].channel.right.duration = ticksperbeat / 1000.0f;
             toneInfo[CHAN_BASS].channel.left.decay = DECAY_LINEAR;
             toneInfo[CHAN_BASS].channel.right.decay = DECAY_LINEAR;
 
@@ -363,7 +354,8 @@ namespace nextris
                 {
                 unsigned long temp = score;
                 rhythm = temp ^ (temp << 7) ^ (temp << 14) ^ (temp << 24);
-                rhythm |= 0x5555; //always play a note on the first of every four beats
+                if (score > 0)
+                    rhythm |= 0x1111; //always play a note on the first of every four beats
                 }
 
         }

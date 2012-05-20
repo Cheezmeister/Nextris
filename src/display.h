@@ -5,7 +5,7 @@
 #include "field.h"
 #include "score.h"
 
-#define FPS 20
+#define FPS 16
 #define PARTICLINESS 30
 
 void draw(SDL_Surface* screen);
