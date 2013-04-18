@@ -5,6 +5,9 @@
 #include "audio.h"
 
 
+static ScintillatingPalette<6> COLORS(FPS);
+
+
 //Block
 Block::Block()
 	{
@@ -84,12 +87,13 @@ void Block::display(SDL_Surface* screen)
 	bg = 0;
 	bb = 0;
 
+	SDL_Color sdlcolor = COLORS[color];
 	if (condemned)
 		{
 		SDL_FillRect(screen, &mask, SDL_MapRGB( screen->format,
-												COLORS[color].r,
-												COLORS[color].g,
-												COLORS[color].b ) );
+												sdlcolor.r,
+												sdlcolor.g,
+												sdlcolor.b ) );
 		}
 	//cdebug << "displaying at " << mask.x << "," << mask.y << "\n";
 	while (bmask.w > 0 && bmask.h > 0)
@@ -98,11 +102,11 @@ void Block::display(SDL_Surface* screen)
 		++bmask.y;
 		bmask.w -= 2;
 		bmask.h -= 2;
-		if (br < COLORS[color].r)
+		if (br < sdlcolor.r)
 			br += 510 / mask.w;
-		if (bg < COLORS[color].g)
+		if (bg < sdlcolor.g)
 			bg += 510 / mask.w;
-		if (bb < COLORS[color].b)
+		if (bb < sdlcolor.b)
 			bb += 510 / mask.w;
 		SDL_FillRect(screen, &bmask, SDL_MapRGB( screen->format,
 		                                        br,

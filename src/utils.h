@@ -21,9 +21,38 @@ class Scintillator
 		int currentindex;
 	
 	public:
+		Scintillator() { }
 		Scintillator(int frequency);
+		void setFrequency(int frequency);
 		SDL_Color color();
 	};
 
+template <unsigned int Size>
+class ScintillatingPalette
+	{
+	private:
+		Scintillator colors[Size];
+
+	public:
+		ScintillatingPalette()
+			{
+			for (int i = 0; i < Size; ++i)
+				colors[i].setFrequency(15 + rand() % 20);
+			}
+		ScintillatingPalette(int frequency)
+			{
+			for (int i = 0; i < Size; ++i)
+				colors[i].setFrequency(frequency);
+			}
+		SDL_Color operator[] (const int index)
+			{
+			if (index > Size)
+				{
+				SDL_Color col = {128, 128, 128, 128};
+				return col;
+				}
+			return colors[index].color();
+			}
+	};
 #endif //utils.h
 

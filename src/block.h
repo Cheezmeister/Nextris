@@ -48,14 +48,7 @@ typedef struct _Coord
 		{ return rhs.x == x && rhs.y == y; }
 	} Coord;
 
-const SDL_Color COLORS[] =	{
-							{255, 0, 0}, //red
-							{0, 255, 0}, //green
-							{0, 0, 255}, //blue
-							{255, 255, 0}, //yellow
-							{0, 255, 255}, //cyan
-							{255, 0, 255} //magenta
-							};
+
 class Block
     {
 	private:

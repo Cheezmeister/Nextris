@@ -26,16 +26,20 @@ void fill_gradient(SDL_Surface* screen, SDL_Rect& loc, SDL_Color cent)
 	}
 
 Scintillator::Scintillator(int frequency) : 
-	freq(frequency),
-	time(SDL_GetTicks()),
-	currentop(0),
-	currentindex(1)
-	{	
+	time(SDL_GetTicks())
+	{
+	setFrequency(frequency);
+	}
+void Scintillator::setFrequency(int frequency)
+	{
+	currentop = 0;
+	currentindex = 1;
+	freq = frequency;
 	rgb[0] = 255;
 	rgb[1] = 0;
 	rgb[2] = 255;
 	}
-	
+
 SDL_Color Scintillator::color()
 	{
 	
@@ -65,3 +69,5 @@ SDL_Color Scintillator::color()
 	ret.b = rgb[2];
 	return ret;	
 	}
+
+

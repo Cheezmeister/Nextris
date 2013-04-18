@@ -88,6 +88,14 @@ void Particle::createParticle(int x, int y, unsigned char color)
 	ppool.push_back(new Particle(x, y, color) );
 	}
 	
+const SDL_Color COLORS[] =	{
+							{255, 0, 0}, //red
+							{0, 255, 0}, //green
+							{0, 0, 255}, //blue
+							{255, 255, 0}, //yellow
+							{0, 255, 255}, //cyan
+							{255, 0, 255} //magenta
+							};
 Particle::Particle(int X, int Y, unsigned char Color) : x(X), y(Y)
 	{
 	life = 100;
