@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 2.6)
 #definitions
 set(PROJECT_NAME "Nextris")
 set(APP_NAME nextris)
-set(PROJECT_VERSION 1 0 1)
+set(PROJECT_VERSION 1 1 0)
 set(DESCRIPTION "Tetris with a twist")
 set(README README.txt)
 set(LICENSE ${README})
@@ -45,6 +45,32 @@ if (PORTAUDIO_FOUND)
    add_definitions("-DHAVE_PORTAUDIO=1")
 endif()
 
+find_package(JNI)
+if (JNI_FOUND)
+  list(APPEND EXTRA_INCLUDE_DIRECTORIES ${JNI_INCLUDE_DIRS})
+
+  message("JNI found! Target 'android' enabled")
+  add_custom_command(
+     OUTPUT ${CMAKE_SOURCE_DIR}/src/android.c
+     COMMAND javah -v -d jni/ -classpath ${CMAKE_SOURCE_DIR}/src/ com.luchenlabs.nextrisandroid.NdkGlue
+     DEPENDS ${trofiles}
+  )
+
+  add_custom_target("ndkbuild" 
+    COMMAND ${NDKBUILD}
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/android"
+  )
+
+  add_custom_target("android" 
+    COMMAND 
+    DEPENDS ndkbuild
+    ${NDK_GLUE} 
+  )
+
+# ~/android-sdks/tools/android create project -n "Nextris" -p . -k com.luchenlabs.nextris -a NxMainActivity -t android-17
+endif()
+
+
 if(WIN32)
     file(GLOB EXTRA_SOURCES ${WIN_DIR}/*.c)
     list(APPEND DLLFILES ${WIN_DIR}/SDL.dll)
@@ -70,10 +96,9 @@ file(GLOB_RECURSE SOURCES ${CMAKE_SOURCE_DIR}/src/*.c
                           ${CMAKE_SOURCE_DIR}/src/*.cpp
                           CMakeLists.txt) #include this script for convenience
 
-#message("Found sources: " ${SOURCES} ${EXTRA_SOURCES} ${HEADERS})
-
 #declare the target program
 add_executable(${APP_NAME} ${SOURCES} ${EXTRA_SOURCES} ${HEADERS})
+
 
 #add some useful preprocessor defines
 set_property(

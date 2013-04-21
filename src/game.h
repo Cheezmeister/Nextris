@@ -13,6 +13,7 @@
 enum {
 	NORMAL_EXIT,
 	ERROR_EXIT,
+	NO_EXIT,
 	RESTART
 };
 
@@ -23,5 +24,6 @@ class Game
 		int run();
 	};
 
+int nextris_run();
 
 #endif
