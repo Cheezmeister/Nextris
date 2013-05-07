@@ -11,10 +11,13 @@ set(README README.txt)
 set(LICENSE ${README})
 set(AUTHORS "Brendan Luchen")
 set(EXTRA_MODULES_IN "cmake/Modules")
-set(TOOLS_NEEDED SDL)
 set(CMAKE_BUILD_TYPE Debug)
-#set(COMPILE_FLAGS "-Wall")
- 
+
+# Allow emscripten for JavaScript port
+option(USE_EMSCRIPTEN "Set this true if deploying to JS with emscripten" OFF)
+if (USE_EMSCRIPTEN)
+  set(APP_SUFFIX ".html")
+endif()
 
 #extract the proper versioning breakdown
 list(GET PROJECT_VERSION 0 CPACK_PACKAGE_VERSION_MAJOR )
@@ -33,9 +36,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 project(${PROJECT_NAME})
 
 #Find required tools (SDL)
-find_package(SDL REQUIRED)
-list(APPEND EXTRA_INCLUDE_DIRECTORIES ${SDL_INCLUDE_DIR})
-list(APPEND LINKED_LIBS ${SDL_LIBRARY})
+if(NOT USE_EMSCRIPTEN)
+  find_package(SDL REQUIRED)
+  list(APPEND EXTRA_INCLUDE_DIRECTORIES ${SDL_INCLUDE_DIR})
+  list(APPEND LINKED_LIBS ${SDL_LIBRARY})
+endif()
 
 #Find optional tools (PA)
 find_package(PortAudio)
@@ -92,9 +97,23 @@ endif(UNIX)
 
 #grab source files
 file(GLOB_RECURSE HEADERS ${CMAKE_SOURCE_DIR}/src/*.h)
-file(GLOB_RECURSE SOURCES ${CMAKE_SOURCE_DIR}/src/*.c
-                          ${CMAKE_SOURCE_DIR}/src/*.cpp
-                          CMakeLists.txt) #include this script for convenience
+list(APPEND SOURCES 
+  src/audio.cpp  
+  src/block.cpp  
+  src/controls.cpp  
+  src/debug.cpp  
+  src/display.cpp  
+  src/field.cpp  
+  src/game.cpp 
+  src/score.cpp  
+  src/utils.cpp
+  )
+list(APPEND SOURCES src/main.cpp) 
+if (NOT USE_EMSCRIPTEN)
+   list(APPEND SOURCES CMakeLists.txt) #include this script for convenience
+else()
+  add_definitions("-DEMSCRIPTEN=1")
+endif()
 
 #declare the target program
 add_executable(${APP_NAME} ${SOURCES} ${EXTRA_SOURCES} ${HEADERS})
@@ -109,7 +128,7 @@ set_property(
 )
 
 set_target_properties(${APP_NAME} PROPERTIES
-    OUTPUT_NAME "${APP_NAME}-${VERSION_STRING}"
+  OUTPUT_NAME "${APP_NAME}-${VERSION_STRING}${APP_SUFFIX}"
 )
 #pass on the flags
 set(CMAKE_CXX_FLAGS ${COMPILE_FLAGS})
@@ -128,9 +147,6 @@ install(FILES ${README} ${LICENSE} ${ADDL_INSTALL_FILES}
 install(FILES ${DLLFILES}
     DESTINATION bin
 )
-
-
-
 
 
 

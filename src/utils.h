@@ -4,6 +4,10 @@
 #include <SDL.h>
 #include <iostream>
 
+// Support old-school SDL
+#if ((SDL_MAJOR_VERSION) == 1 && (SDL_MINOR_VERSION) == 2)
+#  define SDL_GetKeyboardState SDL_GetKeyState
+#endif
 
 #define SDLtoU32(x) (SDL_MapRGB(screen->format, (x).r, (x).g, (x).b) )
 #define FADE_COLOR(x) ((x) & 0x08080808)
@@ -51,6 +55,7 @@ class ScintillatingPalette
 				SDL_Color col = {128, 128, 128, 128};
 				return col;
 				}
+                        // std::cerr << colors[index].color();
 			return colors[index].color();
 			}
 	};
