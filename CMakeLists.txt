@@ -13,10 +13,17 @@ set(AUTHORS "Brendan Luchen")
 set(EXTRA_MODULES_IN "cmake/Modules")
 set(CMAKE_BUILD_TYPE Debug)
 
+set(CMAKE_MAKE_PROGRAM /usr/bin/make)
+
 # Allow emscripten for JavaScript port
 option(USE_EMSCRIPTEN "Set this true if deploying to JS with emscripten" OFF)
+if (CMAKE_C_COMPILER MATCHES "emcc")
+  set(USE_EMSCRIPTEN ON)
+endif()
 if (USE_EMSCRIPTEN)
-  set(APP_SUFFIX ".html")
+  set(COMPILE_FLAGS  "-g -s EXPORTED_FUNCTIONS=\"['_js_setup', '_js_cleanup', '_js_update']\"")
+  set(APP_SUFFIX ".js")
+  message("Emscripten")
 endif()
 
 #extract the proper versioning breakdown
@@ -26,7 +33,7 @@ list(GET PROJECT_VERSION 2 CPACK_PACKAGE_VERSION_PATCH )
 set(VERSION_STRING "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 
 set(WIN_DIR "${CMAKE_SOURCE_DIR}/win")
-set(EXTRA_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/src")
+# set(EXTRA_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/src")
 
 #Tell CMake where to find extra scripts for this project
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
@@ -43,7 +50,7 @@ if(NOT USE_EMSCRIPTEN)
 endif()
 
 #Find optional tools (PA)
-find_package(PortAudio)
+find_package(PortAudio) 
 if (PORTAUDIO_FOUND)
    list(APPEND EXTRA_INCLUDE_DIRECTORIES ${PORTAUDIO_INCLUDE_DIR})
    list(APPEND LINKED_LIBS ${PORTAUDIO_LIBRARIES})
@@ -108,8 +115,8 @@ list(APPEND SOURCES
   src/score.cpp  
   src/utils.cpp
   )
-list(APPEND SOURCES src/main.cpp) 
 if (NOT USE_EMSCRIPTEN)
+   list(APPEND SOURCES src/main.cpp) 
    list(APPEND SOURCES CMakeLists.txt) #include this script for convenience
 else()
   add_definitions("-DEMSCRIPTEN=1")

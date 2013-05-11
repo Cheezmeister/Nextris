@@ -89,7 +89,6 @@ void Block::display(SDL_Surface* screen)
                 Uint32 col = sdlc_to_u32(sdlcolor, screen);
 		SDL_FillRect(screen, &mask, col);
 		}
-	//cdebug << "displaying at " << mask.x << "," << mask.y << "\n";
 	while (bmask.w > 0 && bmask.h > 0)
 		{
 		++bmask.x;

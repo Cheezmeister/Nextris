@@ -26,4 +26,12 @@ class Game
 
 int nextris_run();
 
+int update();
+int setup();
+int cleanup();
+
+void js_update() { update(); }
+void js_setup() { setup(); }
+void js_cleanup() { cleanup(); }
+
 #endif

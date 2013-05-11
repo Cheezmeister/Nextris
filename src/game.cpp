@@ -7,15 +7,6 @@
 
 using namespace std;
 
-int update();//SDL_Surface* screen);
-int setup();//SDL_Surface*& outScreen);
-int cleanup();
-
-void js_update()
-	{
-	update();
-	}
-
 static SDL_Surface* screen = NULL;
 
 int nextris_run()
