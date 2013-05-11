@@ -6,8 +6,20 @@
 
 std::map<std::string, SDLKey> keys;
 
-void read_controls();
-void write_controls();
+void defaults() 
+	{
+	//fallback defaults
+	keys["UP"] = SDLK_w;
+	keys["DOWN"] = SDLK_s;
+	keys["LEFT"] = SDLK_a;
+	keys["RIGHT"] = SDLK_d;
+	keys["A"] = SDLK_l;
+	keys["B"] = SDLK_p;
+	keys["PAUSE"] = SDLK_SPACE;
+	}
+
+void read_controls() { defaults(); }
+void write_controls() { }
 
 std::string names[] = {
 	"LEFT",
@@ -61,41 +73,6 @@ void reconfig_controls()
 			}
 		}
 	write_controls();
-	}
-	
-void read_controls()
-	{
-	std::ifstream infile("keyconfig.txt");
-
-	//fallback defaults
-	keys["UP"] = SDLK_w;
-	keys["DOWN"] = SDLK_s;
-	keys["LEFT"] = SDLK_a;
-	keys["RIGHT"] = SDLK_d;
-	keys["A"] = SDLK_l;
-	keys["B"] = SDLK_p;
-	keys["PAUSE"] = SDLK_SPACE;
-
-	if (infile.fail() )
-		{
-		infile.clear();
-		return;
-		}
-	
-	for (int i = 0; i < N_USERKEYS && infile.good(); ++i)
-		{
-		Uint16 temp;
-		infile >> temp;
-		keys[names[i] ] = (SDLKey)temp;
-		}
-	}
-
-void write_controls()
-	{
-	std::ofstream outfile("keyconfig.txt");
-
-	for (int i = 0; i < N_USERKEYS && outfile.good(); ++i)
-		outfile << keys[names[i] ] << "\n";
 	}
 	
 //DevTeam

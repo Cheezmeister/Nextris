@@ -34,11 +34,6 @@ int Game::run()
         int result = setup();
         if (result != NO_EXIT) return result;
 
-//#ifdef EMSCRIPTEN
-//        emscripten_set_main_loop(js_update, FPS, false);
-//        return NORMAL_EXIT;
-//#endif
-
 	//MAIN LOOP
 	Uint32 nextFrame = SDL_GetTicks() + 1000 / FPS;
 

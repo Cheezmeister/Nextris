@@ -40,7 +40,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
     "${CMAKE_SOURCE_DIR}/${EXTRA_MODULES_IN}")
 
 #declare the project
-project(${PROJECT_NAME} )
+project(${PROJECT_NAME})
 
 #Find required tools (SDL)
 if(NOT USE_EMSCRIPTEN)
@@ -56,31 +56,6 @@ if (PORTAUDIO_FOUND)
    list(APPEND LINKED_LIBS ${PORTAUDIO_LIBRARIES})
    add_definitions("-DHAVE_PORTAUDIO=1")
 endif()
-
-if (JNI_FOUND)
-  list(APPEND EXTRA_INCLUDE_DIRECTORIES ${JNI_INCLUDE_DIRS})
-
-  message("JNI found! Target 'android' enabled")
-  add_custom_command(
-     OUTPUT ${CMAKE_SOURCE_DIR}/src/android.c
-     COMMAND javah -v -d jni/ -classpath ${CMAKE_SOURCE_DIR}/src/ com.luchenlabs.nextrisandroid.NdkGlue
-     DEPENDS ${trofiles}
-  )
-
-  add_custom_target("ndkbuild" 
-    COMMAND ${NDKBUILD}
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/android"
-  )
-
-  add_custom_target("android" 
-    COMMAND 
-    DEPENDS ndkbuild
-    ${NDK_GLUE} 
-  )
-
-# ~/android-sdks/tools/android create project -n "Nextris" -p . -k com.luchenlabs.nextris -a NxMainActivity -t android-17
-endif()
-
 
 if(WIN32)
     file(GLOB EXTRA_SOURCES ${WIN_DIR}/*.c)
@@ -118,7 +93,7 @@ list(APPEND SOURCES
 if (NOT USE_EMSCRIPTEN)
    list(APPEND SOURCES CMakeLists.txt) #include this script for convenience
 else()
-   list(APPEND SOURCES src/jsbridge.c) #include this script for convenience
+   list(APPEND SOURCES src/jsbridge.cpp) 
   add_definitions("-DEMSCRIPTEN=1")
 endif()
 
