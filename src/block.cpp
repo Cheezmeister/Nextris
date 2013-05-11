@@ -82,18 +82,12 @@ void Block::updateGrid(Block*** grid)
 void Block::display(SDL_Surface* screen)
 	{
 	SDL_Rect bmask = mask;
-	unsigned char br, bg, bb;
-	br = 0;
-	bg = 0;
-	bb = 0;
 
 	SDL_Color sdlcolor = COLORS[color];
 	if (condemned)
 		{
-		SDL_FillRect(screen, &mask, SDL_MapRGB( screen->format,
-												sdlcolor.r,
-												sdlcolor.g,
-												sdlcolor.b ) );
+                Uint32 col = sdlc_to_u32(sdlcolor, screen);
+		SDL_FillRect(screen, &mask, col);
 		}
 	//cdebug << "displaying at " << mask.x << "," << mask.y << "\n";
 	while (bmask.w > 0 && bmask.h > 0)
@@ -102,24 +96,16 @@ void Block::display(SDL_Surface* screen)
 		++bmask.y;
 		bmask.w -= 2;
 		bmask.h -= 2;
-		if (br < sdlcolor.r)
-			br += 510 / mask.w;
-		if (bg < sdlcolor.g)
-			bg += 510 / mask.w;
-		if (bb < sdlcolor.b)
-			bb += 510 / mask.w;
-		SDL_FillRect(screen, &bmask, SDL_MapRGB( screen->format,
-		                                        br,
-		                                        bg,
-		                                        bb ) );
+
+                float t = (mask.w - bmask.w) / (float)mask.w;
+                Uint8 br = lerp((Uint8)0, sdlcolor.r, t);
+                Uint8 bg = lerp((Uint8)0, sdlcolor.g, t);
+                Uint8 bb = lerp((Uint8)0, sdlcolor.b, t);
+
+                Uint32 col = SDL_MapRGB(screen->format, br, bg, bb);
+		SDL_FillRect(screen, &bmask, col);
 		}
 
-	if (br)
-		br = 255;
-	if (bg)
-		bg = 255;
-	if (bb)
-		bb = 255;
 	}
 
 unsigned char Block::getColor()
@@ -435,39 +421,33 @@ void Quad::goTo(int X, int Y)
 	master->setY(Y);
 	}
 
+void shadow_helper(Block* b, SDL_Surface* s)
+	{
+	SDL_Rect shadow;
+	shadow.x = b->getX() * BLOCK_WIDTH;
+	shadow.y = b->getY() * BLOCK_WIDTH;
+	shadow.w = BLOCK_WIDTH;
+	shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
+        SDL_Color color = COLORS[b->getColor()];
+	SDL_FillRect(s, &shadow, sdlc_to_u32(fade_color(COLORS[b->getColor()], 8), s));
+	}
+
 void Quad::display(SDL_Surface* screen, bool dropshadow)
 	{
 	cdebug << "Entering Quad::display()\n";
 	
 	if (dropshadow)
 		{
-		SDL_Rect shadow;
-		shadow.x = master->getX() * BLOCK_WIDTH;
-		shadow.y = master->getY() * BLOCK_WIDTH;
-		shadow.w = BLOCK_WIDTH;
-		shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
-		SDL_FillRect(screen, &shadow, FADE_COLOR(SDLtoU32(COLORS[master->getColor()]) ));
-		shadow.x = slave1->getX() * BLOCK_WIDTH; 
-		shadow.y = slave1->getY() * BLOCK_WIDTH;
-		shadow.w = BLOCK_WIDTH;
-		shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
-		SDL_FillRect(screen, &shadow, FADE_COLOR(SDLtoU32(COLORS[slave1->getColor()]) ));
-		shadow.x = slave2->getX() * BLOCK_WIDTH;
-		shadow.y = slave2->getY() * BLOCK_WIDTH;
-		shadow.w = BLOCK_WIDTH;
-		shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
-		SDL_FillRect(screen, &shadow, FADE_COLOR(SDLtoU32(COLORS[slave2->getColor()]) ));
-		shadow.x = slave3->getX() * BLOCK_WIDTH;
-		shadow.y = slave3->getY() * BLOCK_WIDTH;
-		shadow.w = BLOCK_WIDTH;
-		shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
-		SDL_FillRect(screen, &shadow, FADE_COLOR(SDLtoU32(COLORS[slave3->getColor()]) ));
+                shadow_helper(master, screen);
+                shadow_helper(slave1, screen);
+                shadow_helper(slave2, screen);
+                shadow_helper(slave3, screen);
 		}
+
 	master->display(screen);
 	slave1->display(screen);
 	slave2->display(screen);
 	slave3->display(screen);
-	
 	
 	cdebug << "Exiting Quad::display()\n";
 	}
