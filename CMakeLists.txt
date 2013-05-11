@@ -15,22 +15,22 @@ set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_MAKE_PROGRAM /usr/bin/make)
 
+#extract the proper versioning breakdown
+list(GET PROJECT_VERSION 0 CPACK_PACKAGE_VERSION_MAJOR )
+list(GET PROJECT_VERSION 1 CPACK_PACKAGE_VERSION_MINOR )
+list(GET PROJECT_VERSION 2 CPACK_PACKAGE_VERSION_PATCH )
+set(VERSION_STRING "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+
 # Allow emscripten for JavaScript port
 option(USE_EMSCRIPTEN "Set this true if deploying to JS with emscripten" OFF)
 if (CMAKE_C_COMPILER MATCHES "emcc")
   set(USE_EMSCRIPTEN ON)
 endif()
 if (USE_EMSCRIPTEN)
-  set(COMPILE_FLAGS  "-g -s EXPORTED_FUNCTIONS=\"['_js_setup', '_js_cleanup', '_js_update']\"")
+  set(COMPILE_FLAGS  "-s EXPORTED_FUNCTIONS=\"['_js_setup', '_js_cleanup', '_js_update']\"")
   set(APP_SUFFIX ".js")
-  message("Emscripten")
+  # add_custom_target("jslink" COMMAND emcc -s LINKABLE=1 ${APP_NAME}-${VERSION_STRING}.bc -o ${APP_NAME}-${VERSION_STRING}.js)
 endif()
-
-#extract the proper versioning breakdown
-list(GET PROJECT_VERSION 0 CPACK_PACKAGE_VERSION_MAJOR )
-list(GET PROJECT_VERSION 1 CPACK_PACKAGE_VERSION_MINOR )
-list(GET PROJECT_VERSION 2 CPACK_PACKAGE_VERSION_PATCH )
-set(VERSION_STRING "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 
 set(WIN_DIR "${CMAKE_SOURCE_DIR}/win")
 # set(EXTRA_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/src")
@@ -40,7 +40,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
     "${CMAKE_SOURCE_DIR}/${EXTRA_MODULES_IN}")
 
 #declare the project
-project(${PROJECT_NAME})
+project(${PROJECT_NAME} )
 
 #Find required tools (SDL)
 if(NOT USE_EMSCRIPTEN)
@@ -57,7 +57,6 @@ if (PORTAUDIO_FOUND)
    add_definitions("-DHAVE_PORTAUDIO=1")
 endif()
 
-find_package(JNI)
 if (JNI_FOUND)
   list(APPEND EXTRA_INCLUDE_DIRECTORIES ${JNI_INCLUDE_DIRS})
 
@@ -115,10 +114,11 @@ list(APPEND SOURCES
   src/score.cpp  
   src/utils.cpp
   )
-if (NOT USE_EMSCRIPTEN)
    list(APPEND SOURCES src/main.cpp) 
+if (NOT USE_EMSCRIPTEN)
    list(APPEND SOURCES CMakeLists.txt) #include this script for convenience
 else()
+   list(APPEND SOURCES src/jsbridge.c) #include this script for convenience
   add_definitions("-DEMSCRIPTEN=1")
 endif()
 
