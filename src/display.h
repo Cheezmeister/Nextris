@@ -20,11 +20,18 @@ class Particle
 		SDL_Color color;
 		int life;
 		Particle(int X, int Y, unsigned char Color);
+                const static int ppoolSize = PARTICLINESS * 100;
+                static Particle ppool[];
+		static Particle* particlePool();
 	public:
+                Particle() : life(0) { }
 		virtual ~Particle();
 		virtual void display(SDL_Surface* screen);
-		static std::list<Particle*>& particlePool();
 		static void createParticle(int x, int y, unsigned char color);
+		static void createParticles(int num, int x, int y, unsigned char color);
+                static void displayAll(SDL_Surface* screen);
+
+                int getLife() { return life; }
 		
 };
 

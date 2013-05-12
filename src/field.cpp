@@ -11,6 +11,7 @@ Field::Field()
 	warpdrop = false;
 	pushBlocks = true;
 	fail = false;
+        chain = false;
 	clearing = false;
 	cascading = false;
 	chunking = false;
