@@ -2,7 +2,7 @@
 #include "display.h"
 
 
-static std::list<Particle*> ppool;
+Particle Particle::ppool[Particle::ppoolSize];
 		
 void draw(SDL_Surface* screen)
 	{
@@ -66,26 +66,41 @@ void draw(SDL_Surface* screen)
 
 	cdebug << "Score is " << playerScore().getTotal() << "\n";
 	
-	std::list<Particle*> temppool(Particle::particlePool() );
-		
-	for (std::list<Particle*>::iterator it = temppool.begin(); it != temppool.end(); ++it)
-		{
-		(*it)->display(screen);
-		}
+
+        Particle::displayAll(screen);
+
 	cdebug << "Updating screen\n";
 
 	SDL_Flip(screen);
 	}
 
 
-std::list<Particle*>& Particle::particlePool()
+Particle* Particle::particlePool()
 	{
 	return ppool;
 	}
 	
+void Particle::displayAll(SDL_Surface* screen)
+	{
+	for (int i = 0; i < ppoolSize; ++i)
+		{
+		ppool[i].display(screen);
+		}
+	}
+void Particle::createParticles(int num, int x, int y, unsigned char color)
+{
+	for (int i = 0, made = 0; i < ppoolSize && made < num; ++i)
+        {
+        	if (ppool[i].life <= 0)
+                {
+                	ppool[i] = Particle(x, y, color);
+                        ++made;
+                }
+        }
+}
 void Particle::createParticle(int x, int y, unsigned char color)
 	{
-	ppool.push_back(new Particle(x, y, color) );
+	createParticles(1, x, y, color);
 	}
 	
 const SDL_Color COLORS[] =	{
@@ -106,15 +121,13 @@ Particle::Particle(int X, int Y, unsigned char Color) : x(X), y(Y)
 
 Particle::~Particle()
 	{
-	cdebug << "Destructing!\n";
-	ppool.remove(this);
 	}
 
 void Particle::display(SDL_Surface* screen)
 	{
 	if (--life < 0 || x < 0 || y < 0 || x > screen->w || y > screen->h)
 		{
-		delete this;
+		life = 0;
 		return;
 		}
 		
@@ -142,9 +155,16 @@ BouncyParticle::~BouncyParticle()
 	}
 
 void BouncyParticle::createBouncyParticle(int x, int y, unsigned char color)
-	{
-	ppool.push_back(new BouncyParticle(x, y, color) );
-	}
+{
+  for (int i = 0; i < ppoolSize; ++i)
+  {
+    if (ppool[i].getLife() <= 0)
+    {
+      ppool[i] = BouncyParticle(x, y, color);
+      return;
+    }
+  }
+}
 void BouncyParticle::display(SDL_Surface* screen)
 	{
 	if (--life < 0 || x < 0 || y < 0 || x > screen->w || y > screen->h)

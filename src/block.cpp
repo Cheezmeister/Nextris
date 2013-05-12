@@ -67,8 +67,7 @@ int Block::fall(Block*** grid)
 void Block::aspload()
 	{
 	nextris::audio::play_sound(color, getX(), getY(), SND_ASPLOADED);
-	for (int i = 0; i < rand() % PARTICLINESS; ++i)
-		Particle::createParticle(mask.x, mask.y, color);
+	Particle::createParticles(rand() % PARTICLINESS, mask.x, mask.y, color);
 	delete this;
 	}
 void Block::recede()
