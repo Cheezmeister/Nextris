@@ -6,6 +6,7 @@ namespace nextris
     namespace audio
     {
         void init() { }
+        void enable(bool on) { }
         void play_sound(int color, int column, int row, int what) { }
         void update_bassline(unsigned long score) { }
     }
@@ -104,6 +105,7 @@ namespace nextris
         static PaError paerr = paNoError;
         static PaStream* stream = NULL;
         static bool inited = false;
+        static bool nosound = false;
 
         //grand staff ;)
         static StereoToneInfo toneInfo[CHANNELS]; //wave info
@@ -221,7 +223,7 @@ namespace nextris
         }
         void init()
         {
-            if (inited)
+            if (inited || nosound)
                 return;
 
             PaError paerr = Pa_Initialize();
@@ -257,6 +259,13 @@ namespace nextris
                 return;
             }
             inited = true;
+        }
+
+        void enable(bool on) 
+        {
+          if (nosound && on) init();
+
+          nosound = !on;
         }
 
         //stolen from http://www.dspguru.com/dsp/howtos/how-to-generate-white-gaussian-noise
@@ -366,8 +375,6 @@ namespace nextris
 
         void play_sound(int color, int column, int row, int what) 
         { 
-            if (!inited)
-                init();
             if (paerr != paNoError)
                 return;
 
