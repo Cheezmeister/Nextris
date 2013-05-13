@@ -14,6 +14,11 @@ set(EXTRA_MODULES_IN "cmake/Modules")
 set(CMAKE_BUILD_TYPE Debug)
 
 set(CMAKE_MAKE_PROGRAM /usr/bin/make)
+# Allow emscripten for JavaScript port
+option(USE_EMSCRIPTEN "Set this true if deploying to JS with emscripten" OFF)
+if (USE_EMSCRIPTEN)
+  set(APP_SUFFIX ".js")
+endif()
 
 #extract the proper versioning breakdown
 list(GET PROJECT_VERSION 0 CPACK_PACKAGE_VERSION_MAJOR )
