@@ -7,7 +7,7 @@ int parse_args(int argc, char** argv)
 {
   for (int i = 0; i < argc; ++i)
   {
-    if (strcmp(argv[i], "--nosound"))
+    if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--nosound"))
       nextris::audio::enable(false);
   }
 
