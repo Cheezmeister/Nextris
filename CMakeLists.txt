@@ -33,8 +33,8 @@ if (CMAKE_C_COMPILER MATCHES "emcc")
 endif()
 if (USE_EMSCRIPTEN)
   set(COMPILE_FLAGS  "-s EXPORTED_FUNCTIONS=\"['_js_setup', '_js_cleanup', '_js_update']\"")
+  set(CMAKE_CXX_FLAGS_RELEASE "-O2") # -O3 fails to link, this works somewhy :/
   set(APP_SUFFIX ".js")
-  # add_custom_target("jslink" COMMAND emcc -s LINKABLE=1 ${APP_NAME}-${VERSION_STRING}.bc -o ${APP_NAME}-${VERSION_STRING}.js)
 endif()
 
 set(WIN_DIR "${CMAKE_SOURCE_DIR}/win")
@@ -118,8 +118,8 @@ set_target_properties(${APP_NAME} PROPERTIES
   OUTPUT_NAME "${APP_NAME}-${VERSION_STRING}${APP_SUFFIX}"
 )
 #pass on the flags
-set(CMAKE_CXX_FLAGS ${COMPILE_FLAGS})
-set(CMAKE_C_FLAGS   ${COMPILE_FLAGS})
+set(CMAKE_CXX_FLAGS ${COMPILE_FLAGS} ${CMAKE_CXX_FLAGS} )
+set(CMAKE_C_FLAGS   ${COMPILE_FLAGS} ${CMAKE_C_FLAGS} )
 
 target_link_libraries(${APP_NAME} ${LINKED_LIBS})
 include_directories(${EXTRA_INCLUDE_DIRECTORIES})
