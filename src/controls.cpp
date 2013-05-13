@@ -43,6 +43,8 @@ SDLKey get_userkey(UserKey key)
 		
 	if (key < N_USERKEYS)
 		return keys[names[key]];
+
+        std::cout << "key " << key << " name " << names[key] << " sym " << keys[names[key]] << "\n";
 	return SDLK_UNKNOWN;	
 	}
 

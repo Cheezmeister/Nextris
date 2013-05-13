@@ -1,6 +1,6 @@
 #include "field.h"
 
-const int MOVE_DELAY = 4; //keypress delay in frames
+const int MOVE_DELAY = 3; //keypress delay in frames
 
 Field::Field()
 	{
@@ -56,23 +56,23 @@ Field::~Field()
 void Field::handleEvent(SDL_Event* evt)
 	{
 	//pause game
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_PAUSE)
+	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_SPACE)
 		paused = !paused;
 	if (paused) 
 		return;
 	if (!activeQuad) 
 		return;
 	//rotate right
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_B)
+	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_l)
 		activeQuad->rotateLeft();
 	//rotate left
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_A)
+	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_p)
 		activeQuad->rotateRight();
 	//move left
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_LEFT)
+	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_a)
 		moveTimer = MOVE_DELAY, activeQuad->moveLeft();
 	//move right
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == USRKEY_RIGHT)
+	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_d)
 		moveTimer = MOVE_DELAY, activeQuad->moveRight();
 	//immediate drop
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_w)
@@ -87,12 +87,12 @@ void Field::handleInput(Uint8* keystate)
 		--moveTimer;
 	if (moveTimer == 0 && activeQuad)
 		{
-		if (keystate[USRKEY_LEFT])
+		if (keystate[SDLK_a])
 			activeQuad->moveLeft();
-		if (keystate[USRKEY_RIGHT])
+		if (keystate[SDLK_d])
 			activeQuad->moveRight();
 		}
-	if (keystate[USRKEY_DOWN])
+	if (keystate[SDLK_s])
 		{
 		harddrop = true;
 		}
@@ -109,8 +109,8 @@ void Field::step()
 		{
 		if (!harddrop) //prevent getting here several times in the same interval
 			{
-			std::cout << "Speed increased! (" << stepInterval << ")\n";
-			speedUp();		
+//			std::cout << "Speed increased! (" << stepInterval << ")\n";
+//			speedUp();		
 			}
 		}
 	
@@ -137,6 +137,7 @@ void Field::step()
 	//drop the current tetra
 	do
 		{
+                std::cout << "Trying to fall\n";
 		int result = activeQuad->fall();
 		if (result)
 			{
