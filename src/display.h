@@ -12,7 +12,7 @@ void draw(SDL_Surface* screen);
 
 class Particle
 {
-	public:
+	private:
 		int x;
 		int y;
 		int xvel;
