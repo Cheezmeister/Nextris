@@ -1,6 +1,12 @@
 #include <cmath>
 #include "display.h"
 
+enum {
+  PF_NONE   = 0,
+  PF_BOUNCY = (1 << 0),
+  PF_SPINNY = (1 << 1),
+  PF_ALL    = ~0,
+};
 
 Particle Particle::ppool[Particle::ppoolSize];
 		
@@ -87,6 +93,23 @@ void Particle::displayAll(SDL_Surface* screen)
 		ppool[i].display(screen);
 		}
 	}
+void Particle::createBouncyParticles(int num, int x, int y, unsigned char color)
+{
+	for (int i = 0, made = 0; i < ppoolSize && made < num; ++i)
+        {
+        	if (ppool[i].life <= 0)
+                {
+                	ppool[i] = Particle(x, y, color);
+                        ppool[i].xaccel = 0;
+                        ppool[i].yaccel = 0;
+                        ppool[i].width  = 1;
+                        ppool[i].height = 1;
+                        ppool[i].flags |= PF_BOUNCY;
+                        ppool[i].life   *= 2;
+                        ++made;
+                }
+        }
+}
 void Particle::createParticles(int num, int x, int y, unsigned char color)
 {
 	for (int i = 0, made = 0; i < ppoolSize && made < num; ++i)
@@ -94,14 +117,15 @@ void Particle::createParticles(int num, int x, int y, unsigned char color)
         	if (ppool[i].life <= 0)
                 {
                 	ppool[i] = Particle(x, y, color);
+                        ppool[i].xaccel = 0;
+                        ppool[i].yaccel = 1;
+                        ppool[i].width  = 1;
+                        ppool[i].height = 1;
+                        ppool[i].flags |= PF_SPINNY;
                         ++made;
                 }
         }
 }
-void Particle::createParticle(int x, int y, unsigned char color)
-	{
-	createParticles(1, x, y, color);
-	}
 	
 const SDL_Color COLORS[] =	{
 							{255, 0, 0}, //red
@@ -132,58 +156,34 @@ void Particle::display(SDL_Surface* screen)
 		}
 		
 	x += xvel; //update location
-	y += ++yvel;
-	SDL_Rect rect = {x, y, life % 4 + 1, (life+2) % 4 + 1};
+	y += yvel;
+
+        xvel += xaccel;
+        yvel += yaccel;
+
+	SDL_Rect rect = {x, y, width, height};
+        if (flags & PF_SPINNY)
+        {
+	  SDL_Rect temp = {x, y, life % 4 + width, (life+2) % 4 + height};
+          rect = temp;
+        }
+
+        if (flags & PF_BOUNCY)
+		{
+	 	if (y >= FIELD_HEIGHT * BLOCK_WIDTH || y <= 0)
+	 		yvel = -yvel;
+	 	if (x >= FIELD_WIDTH * BLOCK_WIDTH || x <= 0)
+			xvel = -xvel;
+		}
 	
 	color.r = color.r * 15 / 16;
 	color.g = color.g * 15 / 16;
 	color.b = color.b * 15 / 16;
+        SDL_Color out = {
+          color.r * life / 100, 
+          color.g * life / 100, 
+          color.b * life / 100, 
+          color.unused * life / 100, 
+        };
 	SDL_FillRect(screen, &rect, SDLtoU32(color) ); //draw
 	}
-
-// BouncyParticle::BouncyParticle(int X, int Y, unsigned char Color) : Particle(X, Y, Color)
-// 	{
-// 	life = 100;
-// 	color = COLORS[Color];
-// 	double angle = (double)rand() / RAND_MAX * 2 * M_PI;
-// 	xvel = 15 * cos(angle);
-// 	yvel = 15 * sin(angle);
-// 	}
-// 
-// BouncyParticle::~BouncyParticle()
-// 	{
-// 	}
-// 
-// void BouncyParticle::createBouncyParticle(int x, int y, unsigned char color)
-// {
-//   for (int i = 0; i < ppoolSize; ++i)
-//   {
-//     if (ppool[i].getLife() <= 0)
-//     {
-//       ppool[i] = BouncyParticle(x, y, color);
-//       return;
-//     }
-//   }
-// }
-// void BouncyParticle::display(SDL_Surface* screen)
-// 	{
-// 	if (--life < 0 || x < 0 || y < 0 || x > screen->w || y > screen->h)
-// 		{
-// 		delete this;
-// 		return;
-// 		}
-// 		
-// 	x += xvel; //update location
-// 	y += yvel;
-// 	if (y >= FIELD_HEIGHT * BLOCK_WIDTH || y <= 0)
-// 		yvel = -yvel;
-// 	if (x >= FIELD_WIDTH * BLOCK_WIDTH || x <= 0)
-// 		xvel = -xvel;
-// 
-// 	SDL_Rect rect = {x, y, 1, 1};
-// 	color.r = color.r * 15 / 16;
-// 	color.g = color.g * 15 / 16;
-// 	color.b = color.b * 15 / 16;
-// 	
-// 	SDL_FillRect(screen, &rect, SDL_MapRGBA(screen->format, color.r, color.g, color.b, life * 2)); //draw
-// 	}

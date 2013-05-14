@@ -117,7 +117,7 @@ void Block::deactivate()
 	}
 void Block::poomp()
 	{
-	Particle::createParticles(PARTICLINESS, mask.x + BLOCK_WIDTH / 2, mask.y + BLOCK_WIDTH / 2, color);
+	Particle::createBouncyParticles(PARTICLINESS, mask.x + BLOCK_WIDTH / 2, mask.y + BLOCK_WIDTH / 2, color);
 	}
 
 int Block::getX()

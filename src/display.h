@@ -17,32 +17,30 @@ class Particle
 		int y;
 		int xvel;
 		int yvel;
-		SDL_Color color;
+                int xaccel;
+                int yaccel;
+                int width;
+                int height;
 		int life;
-		Particle(int X, int Y, unsigned char Color);
+		SDL_Color color;
+                Uint8 flags;
+
                 const static int ppoolSize = PARTICLINESS * 100;
                 static Particle ppool[];
 		static Particle* particlePool();
+
+		Particle(int X, int Y, unsigned char Color);
 	public:
                 Particle() : life(0) { }
 		~Particle();
 		void display(SDL_Surface* screen);
-		static void createParticle(int x, int y, unsigned char color);
 		static void createParticles(int num, int x, int y, unsigned char color);
+		static void createBouncyParticles(int num, int x, int y, unsigned char color);
                 static void displayAll(SDL_Surface* screen);
 
                 int getLife() { return life; }
 		
 };
 
-// class BouncyParticle : public Particle
-// {
-// 	private:
-// 		BouncyParticle(int X, int Y, unsigned char Color);
-// 	public:
-// 		virtual ~BouncyParticle();
-// 		virtual void display(SDL_Surface* screen);
-// 		static void createBouncyParticle(int x, int y, unsigned char color);
-// };
 
 #endif // DISPLAY_H
