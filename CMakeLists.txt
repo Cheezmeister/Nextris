@@ -13,10 +13,11 @@ set(AUTHORS "Brendan Luchen")
 set(EXTRA_MODULES_IN "cmake/Modules")
 set(CMAKE_BUILD_TYPE Debug)
 
+set(CMAKE_MAKE_PROGRAM /usr/bin/make)
 # Allow emscripten for JavaScript port
 option(USE_EMSCRIPTEN "Set this true if deploying to JS with emscripten" OFF)
 if (USE_EMSCRIPTEN)
-  set(APP_SUFFIX ".html")
+  set(APP_SUFFIX ".js")
 endif()
 
 #extract the proper versioning breakdown
@@ -25,8 +26,19 @@ list(GET PROJECT_VERSION 1 CPACK_PACKAGE_VERSION_MINOR )
 list(GET PROJECT_VERSION 2 CPACK_PACKAGE_VERSION_PATCH )
 set(VERSION_STRING "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 
+# Allow emscripten for JavaScript port
+option(USE_EMSCRIPTEN "Set this true if deploying to JS with emscripten" OFF)
+if (CMAKE_C_COMPILER MATCHES "emcc")
+  set(USE_EMSCRIPTEN ON)
+endif()
+if (USE_EMSCRIPTEN)
+  set(COMPILE_FLAGS  "-s EXPORTED_FUNCTIONS=\"['_js_setup', '_js_cleanup', '_js_update']\"")
+  set(CMAKE_CXX_FLAGS_RELEASE "-O2") # -O3 fails to link, this works somewhy :/
+  set(APP_SUFFIX ".js")
+endif()
+
 set(WIN_DIR "${CMAKE_SOURCE_DIR}/win")
-set(EXTRA_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/src")
+# set(EXTRA_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/src")
 
 #Tell CMake where to find extra scripts for this project
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
@@ -43,38 +55,12 @@ if(NOT USE_EMSCRIPTEN)
 endif()
 
 #Find optional tools (PA)
-find_package(PortAudio)
+find_package(PortAudio) 
 if (PORTAUDIO_FOUND)
    list(APPEND EXTRA_INCLUDE_DIRECTORIES ${PORTAUDIO_INCLUDE_DIR})
    list(APPEND LINKED_LIBS ${PORTAUDIO_LIBRARIES})
    add_definitions("-DHAVE_PORTAUDIO=1")
 endif()
-
-find_package(JNI)
-if (JNI_FOUND)
-  list(APPEND EXTRA_INCLUDE_DIRECTORIES ${JNI_INCLUDE_DIRS})
-
-  message("JNI found! Target 'android' enabled")
-  add_custom_command(
-     OUTPUT ${CMAKE_SOURCE_DIR}/src/android.c
-     COMMAND javah -v -d jni/ -classpath ${CMAKE_SOURCE_DIR}/src/ com.luchenlabs.nextrisandroid.NdkGlue
-     DEPENDS ${trofiles}
-  )
-
-  add_custom_target("ndkbuild" 
-    COMMAND ${NDKBUILD}
-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/android"
-  )
-
-  add_custom_target("android" 
-    COMMAND 
-    DEPENDS ndkbuild
-    ${NDK_GLUE} 
-  )
-
-# ~/android-sdks/tools/android create project -n "Nextris" -p . -k com.luchenlabs.nextris -a NxMainActivity -t android-17
-endif()
-
 
 if(WIN32)
     file(GLOB EXTRA_SOURCES ${WIN_DIR}/*.c)
@@ -108,10 +94,11 @@ list(APPEND SOURCES
   src/score.cpp  
   src/utils.cpp
   )
-list(APPEND SOURCES src/main.cpp) 
+   list(APPEND SOURCES src/main.cpp) 
 if (NOT USE_EMSCRIPTEN)
    list(APPEND SOURCES CMakeLists.txt) #include this script for convenience
 else()
+   list(APPEND SOURCES src/jsbridge.cpp) 
   add_definitions("-DEMSCRIPTEN=1")
 endif()
 
@@ -131,8 +118,8 @@ set_target_properties(${APP_NAME} PROPERTIES
   OUTPUT_NAME "${APP_NAME}-${VERSION_STRING}${APP_SUFFIX}"
 )
 #pass on the flags
-set(CMAKE_CXX_FLAGS ${COMPILE_FLAGS})
-set(CMAKE_C_FLAGS   ${COMPILE_FLAGS})
+set(CMAKE_CXX_FLAGS ${COMPILE_FLAGS} ${CMAKE_CXX_FLAGS} )
+set(CMAKE_C_FLAGS   ${COMPILE_FLAGS} ${CMAKE_C_FLAGS} )
 
 target_link_libraries(${APP_NAME} ${LINKED_LIBS})
 include_directories(${EXTRA_INCLUDE_DIRECTORIES})
