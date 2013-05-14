@@ -7,6 +7,14 @@ enum {
   PF_SPINNY = (1 << 1),
   PF_ALL    = ~0,
 };
+const SDL_Color COLORS[] = {
+	{255, 0, 0}, //red
+	{0, 255, 0}, //green
+	{0, 0, 255}, //blue
+	{255, 255, 0}, //yellow
+	{0, 255, 255}, //cyan
+	{255, 0, 255} //magenta
+};
 
 Particle Particle::ppool[Particle::ppoolSize];
 		
@@ -99,13 +107,12 @@ void Particle::createBouncyParticles(int num, int x, int y, unsigned char color)
         {
         	if (ppool[i].life <= 0)
                 {
-                	ppool[i] = Particle(x, y, color);
-                        ppool[i].xaccel = 0;
-                        ppool[i].yaccel = 0;
-                        ppool[i].width  = 1;
-                        ppool[i].height = 1;
-                        ppool[i].flags |= PF_BOUNCY;
-                        ppool[i].life   *= 2;
+                	ppool[i] = Particle(x, y, COLORS[color]);
+                        ppool[i].xaccel  = 0;
+                        ppool[i].yaccel  = 0;
+                        ppool[i].maxlife = 200;
+                        ppool[i].life    = 200;
+                        ppool[i].flags  |= PF_BOUNCY;
                         ++made;
                 }
         }
@@ -116,31 +123,26 @@ void Particle::createParticles(int num, int x, int y, unsigned char color)
         {
         	if (ppool[i].life <= 0)
                 {
-                	ppool[i] = Particle(x, y, color);
+                	ppool[i] = Particle(x, y, COLORS[color]);
                         ppool[i].xaccel = 0;
                         ppool[i].yaccel = 1;
-                        ppool[i].width  = 1;
-                        ppool[i].height = 1;
                         ppool[i].flags |= PF_SPINNY;
                         ++made;
                 }
         }
 }
 	
-const SDL_Color COLORS[] =	{
-							{255, 0, 0}, //red
-							{0, 255, 0}, //green
-							{0, 0, 255}, //blue
-							{255, 255, 0}, //yellow
-							{0, 255, 255}, //cyan
-							{255, 0, 255} //magenta
-							};
-Particle::Particle(int X, int Y, unsigned char Color) : x(X), y(Y)
+Particle::Particle(int X, int Y, SDL_Color Color) : x(X), y(Y)
 	{
-	life = 100;
-	color = COLORS[Color];
+	color = Color;
 	xvel = rand() % 30 - 15;
 	yvel = rand() % 20 - 15;
+        xaccel = 0;
+        yaccel = 0;
+        width = 1;
+        height = 1;
+	life = 100;
+	maxlife = 100;
 	}
 
 Particle::~Particle()
@@ -180,10 +182,10 @@ void Particle::display(SDL_Surface* screen)
 	color.g = color.g * 15 / 16;
 	color.b = color.b * 15 / 16;
         SDL_Color out = {
-          color.r * life / 100, 
-          color.g * life / 100, 
-          color.b * life / 100, 
-          color.unused * life / 100, 
+          color.r * life / maxlife, 
+          color.g * life / maxlife, 
+          color.b * life / maxlife, 
+          color.unused * life / maxlife, 
         };
 	SDL_FillRect(screen, &rect, SDLtoU32(color) ); //draw
 	}

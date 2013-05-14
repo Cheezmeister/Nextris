@@ -22,6 +22,7 @@ class Particle
                 int width;
                 int height;
 		int life;
+                int maxlife;
 		SDL_Color color;
                 Uint8 flags;
 
@@ -29,7 +30,7 @@ class Particle
                 static Particle ppool[];
 		static Particle* particlePool();
 
-		Particle(int X, int Y, unsigned char Color);
+		Particle(int X, int Y, SDL_Color Color);
 	public:
                 Particle() : life(0) { }
 		~Particle();
