@@ -1,7 +1,6 @@
 #ifndef FIELD_H
 #define FIELD_H
 
-#include <map>
 #include "SDL.h"
 #include "debug.h"
 #include "controls.h"

@@ -5,7 +5,7 @@
 #include "audio.h"
 
 
-static ScintillatingPalette<6> COLORS(FPS);
+static ScintillatingPalette<6> scintColors(1);
 
 
 //Block
@@ -82,7 +82,8 @@ void Block::display(SDL_Surface* screen)
 	{
 	SDL_Rect bmask = mask;
 
-	SDL_Color sdlcolor = COLORS[color];
+        SDL_Color base = BASE_COLORS[color];
+	SDL_Color sdlcolor = scintColors[color];
 	if (condemned)
 		{
                 Uint32 col = sdlc_to_u32(sdlcolor, screen);
@@ -96,9 +97,13 @@ void Block::display(SDL_Surface* screen)
 		bmask.h -= 2;
 
                 float t = (mask.w - bmask.w) / (float)mask.w;
-                Uint8 br = lerp((Uint8)0, sdlcolor.r, t);
-                Uint8 bg = lerp((Uint8)0, sdlcolor.g, t);
-                Uint8 bb = lerp((Uint8)0, sdlcolor.b, t);
+                Uint8 br = sdlcolor.r; //lerp(sdlcolor.r, base.r, t);
+                Uint8 bg = sdlcolor.g; //lerp(sdlcolor.g, base.g, t);
+                Uint8 bb = sdlcolor.b; //lerp(sdlcolor.b, base.b, t);
+
+                br = lerp((Uint8)0, br, t);
+                bg = lerp((Uint8)0, bg, t);
+                bb = lerp((Uint8)0, bb, t);
 
                 Uint32 col = SDL_MapRGB(screen->format, br, bg, bb);
 		SDL_FillRect(screen, &bmask, col);
@@ -117,7 +122,7 @@ void Block::deactivate()
 	}
 void Block::poomp()
 	{
-	Particle::createParticles(PARTICLINESS, mask.x + BLOCK_WIDTH / 2, mask.y + BLOCK_WIDTH / 2, color);
+	Particle::createBouncyParticles(PARTICLINESS, mask.x + BLOCK_WIDTH / 2, mask.y + BLOCK_WIDTH / 2, color);
 	}
 
 int Block::getX()
@@ -423,8 +428,9 @@ void shadow_helper(Block* b, SDL_Surface* s)
 	shadow.y = b->getY() * BLOCK_WIDTH;
 	shadow.w = BLOCK_WIDTH;
 	shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
-        SDL_Color color = COLORS[b->getColor()];
-	SDL_FillRect(s, &shadow, sdlc_to_u32(fade_color(COLORS[b->getColor()], 8), s));
+        SDL_Color color = scintColors[b->getColor()];
+	//SDL_FillRect(s, &shadow, );
+        vertical_gradient(s, shadow, fade_color(scintColors[b->getColor()], 8));
 	}
 
 void Quad::display(SDL_Surface* screen, bool dropshadow)
