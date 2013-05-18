@@ -9,6 +9,15 @@
 
 #define BLOCK_WIDTH 32
 
+const SDL_Color BASE_COLORS[] = {
+	{255, 0, 0}, //red
+	{0, 255, 0}, //green
+	{0, 0, 255}, //blue
+	{255, 255, 0}, //yellow
+	{0, 255, 255}, //cyan
+	{255, 0, 255} //magenta
+};
+
 enum {
     SND_ASPLOADED,
     SND_ROTATELEFT,

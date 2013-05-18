@@ -7,14 +7,7 @@ enum {
   PF_SPINNY = (1 << 1),
   PF_ALL    = ~0,
 };
-const SDL_Color COLORS[] = {
-	{255, 0, 0}, //red
-	{0, 255, 0}, //green
-	{0, 0, 255}, //blue
-	{255, 255, 0}, //yellow
-	{0, 255, 255}, //cyan
-	{255, 0, 255} //magenta
-};
+const SDL_Color* COLORS = BASE_COLORS; 
 
 Particle Particle::ppool[Particle::ppoolSize];
 		

@@ -12,8 +12,14 @@
 #define SDLtoU32(x) (SDL_MapRGB(screen->format, (x).r, (x).g, (x).b) )
 #define FADE_COLOR(x) ((x) & 0x08080808)
 
+enum Gradient {
+  GT_RADIAL,
+  GT_VERTICAL,
+};
+
 #define GRADIENT 20
 void fill_gradient(SDL_Surface* screen, SDL_Rect& loc, SDL_Color cent);
+void vertical_gradient(SDL_Surface* screen, SDL_Rect& loc, SDL_Color bottom);
 
 template<typename T>
 T lerp(T a, T b, float t)
