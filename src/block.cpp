@@ -5,7 +5,7 @@
 #include "audio.h"
 
 
-static ScintillatingPalette<6> scintColors(1);
+static StochasticScintillator<6> scintColors(0.1);
 
 
 //Block

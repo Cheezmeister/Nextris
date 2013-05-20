@@ -2,13 +2,13 @@
 
 void vertical_gradient(SDL_Surface* screen, SDL_Rect& loc, SDL_Color bottom)
 {
-  int lines = loc.h; //(loc.h < 255 ? loc.h : 255);
+  int lines = (loc.h < 255 ? loc.h : 255);
   Uint8 r, g, b;
   SDL_Rect dest = loc;
   for (int i = 0; i < lines; ++i)
   {
     float t = (i / (float) lines);
-    dest.h--; // = lerp(loc.h, (Uint16)0, t);
+    dest.h = lerp(loc.h, (Uint16)0, t);
     r = lerp(bottom.r, (Uint8)0, t);
     g = lerp(bottom.g, (Uint8)0, t);
     b = lerp(bottom.b, (Uint8)0, t);
