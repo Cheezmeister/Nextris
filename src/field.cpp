@@ -63,10 +63,10 @@ void Field::handleEvent(SDL_Event* evt)
 	if (!activeQuad) 
 		return;
 	//rotate right
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_l)
+	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_p)
 		activeQuad->rotateLeft();
 	//rotate left
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_p)
+	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_l)
 		activeQuad->rotateRight();
 	//move left
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_a)
@@ -137,7 +137,6 @@ void Field::step()
 	//drop the current tetra
 	do
 		{
-                std::cout << "Trying to fall\n";
 		int result = activeQuad->fall();
 		if (result)
 			{
