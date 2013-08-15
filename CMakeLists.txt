@@ -13,7 +13,6 @@ set(AUTHORS "Brendan Luchen")
 set(EXTRA_MODULES_IN "cmake/Modules")
 set(CMAKE_BUILD_TYPE Debug)
 
-set(CMAKE_MAKE_PROGRAM /usr/bin/make)
 # Allow emscripten for JavaScript port
 option(USE_EMSCRIPTEN "Set this true if deploying to JS with emscripten" OFF)
 if (USE_EMSCRIPTEN)
