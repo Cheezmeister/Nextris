@@ -2,6 +2,8 @@
 
 const int MOVE_DELAY = 3; //keypress delay in frames
 
+bool sHeld = false;
+
 Field::Field()
 	{
 	//screen = Screen;
@@ -74,6 +76,15 @@ void Field::handleEvent(SDL_Event* evt)
 	//move right
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_d)
 		moveTimer = MOVE_DELAY, activeQuad->moveRight();
+        //hard drop
+        if (evt->type == SDL_KEYUP && evt->key.keysym.sym == SDLK_s) 
+        {
+          sHeld = false;
+        }
+        if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_s) 
+        {
+          sHeld = true;
+        }
 	//immediate drop
 	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_w)
 		warpdrop = true;
@@ -92,7 +103,7 @@ void Field::handleInput(Uint8* keystate)
 		if (keystate[SDLK_d])
 			activeQuad->moveRight();
 		}
-	if (keystate[SDLK_s])
+	if (sHeld || keystate[SDLK_s])
 		{
 		harddrop = true;
 		}

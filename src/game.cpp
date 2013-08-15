@@ -96,11 +96,9 @@ int cleanup()
 int update()
 	{
 	static Uint32 nextFrame = 0;
-        static boolean sDown = false;
 	SDL_Event event;
 	Uint8* ks;
 	ks = SDL_GetKeyboardState(NULL);
-        if (sDown) ks[SDLK_s] = 1; // HACK
 	playField().handleInput(ks);
 	while (SDL_PollEvent(&event))
 		{
@@ -114,7 +112,6 @@ int update()
 			case SDL_KEYDOWN:
 				if (event.key.keysym.sym == SDLK_ESCAPE)
 					return NORMAL_EXIT;
-				sDown = (event.key.keysym.sym == SDLK_s); // HACK
 				if (event.key.keysym.sym == CONFIG_KEYS)
 					reconfig_controls();
 				break;
