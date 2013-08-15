@@ -79,10 +79,12 @@ void Field::handleEvent(SDL_Event* evt)
         //hard drop
         if (evt->type == SDL_KEYUP && evt->key.keysym.sym == SDLK_s) 
         {
+          std::cerr << "BAAA";
           sHeld = false;
         }
         if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_s) 
         {
+          std::cerr << "TAAA";
           sHeld = true;
         }
 	//immediate drop
