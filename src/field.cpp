@@ -1,8 +1,12 @@
 #include "field.h"
+#include "options.h"
+
+using namespace nextris::options;
 
 const int MOVE_DELAY = 3; //keypress delay in frames
 
 bool sHeld = false;
+
 
 Field::Field()
 	{
@@ -13,7 +17,7 @@ Field::Field()
 	warpdrop = false;
 	pushBlocks = true;
 	fail = false;
-        chain = false;
+	chain = false;
 	clearing = false;
 	cascading = false;
 	chunking = false;
@@ -57,39 +61,44 @@ Field::~Field()
 //one seems too fast, the other too slow.
 void Field::handleEvent(SDL_Event* evt)
 	{
-	//pause game
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_SPACE)
-		paused = !paused;
-	if (paused) 
-		return;
-	if (!activeQuad) 
-		return;
-	//rotate right
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_p)
-		activeQuad->rotateLeft();
-	//rotate left
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_l)
-		activeQuad->rotateRight();
-	//move left
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_a)
-		moveTimer = MOVE_DELAY, activeQuad->moveLeft();
-	//move right
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_d)
-		moveTimer = MOVE_DELAY, activeQuad->moveRight();
-        //hard drop
-        if (evt->type == SDL_KEYUP && evt->key.keysym.sym == SDLK_s) 
-        {
-          std::cerr << "BAAA";
-          sHeld = false;
-        }
-        if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_s) 
-        {
-          std::cerr << "TAAA";
-          sHeld = true;
-        }
-	//immediate drop
-	if (evt->type == SDL_KEYDOWN && evt->key.keysym.sym == SDLK_w)
-		warpdrop = true;
+	//workaround for no keystate via emscripten
+	if (evt->type == SDL_KEYUP && evt->key.keysym.sym == get_options().keys.down) 
+	{
+	  sHeld = false;
+	}
+    else if (evt->type == SDL_KEYDOWN)
+    {
+      // TODO optinos.keys are chars, might need to map to SDLKey
+      SDLKey key = evt->key.keysym.sym;
+      Options::KeysOpts keys = get_options().keys;
+
+      //pause game
+      if (key == keys.pause)
+        if ((paused = !paused))
+            return;
+      if (!activeQuad) 
+          return;
+
+      if (key == keys.rotleft) //rotate right
+          activeQuad->rotateLeft();
+
+      if (key == keys.rotright) //rotate left
+          activeQuad->rotateRight();
+
+      if (key == keys.left) //move left
+          moveTimer = MOVE_DELAY, activeQuad->moveLeft();
+
+      if (key == keys.right) //move right
+          moveTimer = MOVE_DELAY, activeQuad->moveRight();
+
+      if (key == keys.down) //hard drop
+      {
+        sHeld = true;
+      }
+      if (key == keys.up) //immediate drop
+          warpdrop = true;
+    }
+
 	}
 
 void Field::handleInput(Uint8* keystate)

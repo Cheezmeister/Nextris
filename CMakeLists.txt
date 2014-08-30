@@ -31,7 +31,7 @@ if (CMAKE_C_COMPILER MATCHES "emcc")
   set(USE_EMSCRIPTEN ON)
 endif()
 if (USE_EMSCRIPTEN)
-  set(COMPILE_FLAGS  "-s EXPORTED_FUNCTIONS=\"['_js_setup', '_js_cleanup', '_js_update']\"")
+  set(COMPILE_FLAGS  "-DEXPORTED_FUNCTIONS=\"['_js_setup', '_js_cleanup', '_js_update']\"")
   set(CMAKE_CXX_FLAGS_RELEASE "-O2") # -O3 fails to link, this works somewhy :/
   set(APP_SUFFIX ".js")
 endif()
@@ -54,7 +54,7 @@ if(NOT USE_EMSCRIPTEN)
 endif()
 
 #Find optional tools (PA)
-find_package(PortAudio) 
+find_package(PortAudio)
 if (PORTAUDIO_FOUND)
    list(APPEND EXTRA_INCLUDE_DIRECTORIES ${PORTAUDIO_INCLUDE_DIR})
    list(APPEND LINKED_LIBS ${PORTAUDIO_LIBRARIES})
@@ -66,7 +66,7 @@ if(WIN32)
     list(APPEND DLLFILES ${WIN_DIR}/SDL.dll)
     if(MSVC)
         #for math.h
-        set(COMPILEDEFS ${COMPILEDEFS} _USE_MATH_DEFINES) 
+        set(COMPILEDEFS ${COMPILEDEFS} _USE_MATH_DEFINES)
     endif(MSVC)
 endif(WIN32)
 
@@ -82,22 +82,22 @@ endif(UNIX)
 
 #grab source files
 file(GLOB_RECURSE HEADERS ${CMAKE_SOURCE_DIR}/src/*.h)
-list(APPEND SOURCES 
-  src/audio.cpp  
-  src/block.cpp  
-  src/controls.cpp  
-  src/debug.cpp  
-  src/display.cpp  
-  src/field.cpp  
-  src/game.cpp 
-  src/score.cpp  
+list(APPEND SOURCES
+  src/audio.cpp
+  src/block.cpp
+  src/debug.cpp
+  src/display.cpp
+  src/field.cpp
+  src/options.cpp
+  src/game.cpp
+  src/score.cpp
   src/utils.cpp
   )
-   list(APPEND SOURCES src/main.cpp) 
+   list(APPEND SOURCES src/main.cpp)
 if (NOT USE_EMSCRIPTEN)
    list(APPEND SOURCES CMakeLists.txt) #include this script for convenience
 else()
-   list(APPEND SOURCES src/jsbridge.cpp) 
+   list(APPEND SOURCES src/jsbridge.c)
   add_definitions("-DEMSCRIPTEN=1")
 endif()
 

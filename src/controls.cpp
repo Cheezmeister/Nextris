@@ -76,6 +76,3 @@ void reconfig_controls()
 		}
 	write_controls();
 	}
-	
-//DevTeam
-//letmein35

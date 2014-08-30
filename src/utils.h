@@ -36,30 +36,32 @@ static SDL_Color h11_to_rgb(float hue)
   float fbs = fmf - 1 > 0 ? fmf - 1 : 1 - fmf;
   Uint8 X = (Uint8)(255 * (1.0 - fbs));
 
+  SDL_Color r = {0, 0, 0, 0};
   if (hue < 1.0)
   {
-    SDL_Color c = {chroma, X, 0, 0}; return c;
+    SDL_Color c = {chroma, X, 0, 0}; r = c;
   }
   if (hue < 2.0)
   {
-    SDL_Color c = {X, chroma, 0, 0}; return c;
+    SDL_Color c = {X, chroma, 0, 0}; r = c;
   }
   if (hue < 3.0)
   {
-    SDL_Color c = {0, chroma, X, 0}; return c;
+    SDL_Color c = {0, chroma, X, 0}; r = c;
   }
   if (hue < 4.0)
   {
-    SDL_Color c = {0, X, chroma, 0}; return c;
+    SDL_Color c = {0, X, chroma, 0}; r = c;
   }
   if (hue < 5.0)
   {
-    SDL_Color c = {X, 0, chroma, 0}; return c;
+    SDL_Color c = {X, 0, chroma, 0}; r = c;
   }
   if (hue < 6.0)
   {
-    SDL_Color c = {chroma, 0, X, 0}; return c;
+    SDL_Color c = {chroma, 0, X, 0}; r = c;
   }
+  return r;
 }
 static SDL_Color fade_color(const SDL_Color& color, int fade_factor = 8)
 {
@@ -199,7 +201,6 @@ class ScintillatingPalette
 				SDL_Color col = {128, 128, 128, 128};
 				return col;
 				}
-                        // std::cerr << colors[index].color();
 			return colors[index].color();
 			}
 	};

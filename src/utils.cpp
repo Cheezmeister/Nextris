@@ -62,7 +62,6 @@ SDL_Color Scintillator::color()
 	
 	SDL_Color ret;
 	
-	
 	if (SDL_GetTicks() - time > 1000 / freq)
 		{
 		time = SDL_GetTicks();

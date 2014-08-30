@@ -1,5 +1,6 @@
 #include "game.h"
 #include "audio.h"
+#include "options.h"
 
 #ifdef EMSCRIPTEN
 #  include <emscripten.h>
@@ -62,6 +63,7 @@ int setup()
 	srand(time(NULL) );
 
 	nextris::audio::init();
+  nextris::options::init();
 
 	//init video
 	if ( SDL_Init( SDL_INIT_VIDEO ) < 0 )
@@ -112,8 +114,6 @@ int update()
 			case SDL_KEYDOWN:
 				if (event.key.keysym.sym == SDLK_ESCAPE)
 					return NORMAL_EXIT;
-				if (event.key.keysym.sym == CONFIG_KEYS)
-					reconfig_controls();
 				break;
 			} // end switch
 		} // end of message processing
