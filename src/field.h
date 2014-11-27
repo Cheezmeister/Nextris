@@ -31,7 +31,7 @@ private:
     int chain;       //are we in the middle of a chain?
     Uint32 moveTimer; //key press timer for left and right
     //SDL_Surface* screen;
-    Quad* activeQuad, *nextQuad;
+    Quad* activeQuad;
     Block*** grid;
     std::vector<Region> falling;
 

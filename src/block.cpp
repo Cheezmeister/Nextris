@@ -5,7 +5,7 @@
 #include "audio.h"
 
 
-static StochasticScintillator<6> scintColors(0.1);
+static ScintillatingPalette<6> scintColors(0.02);
 
 
 //Block
@@ -430,7 +430,7 @@ void shadow_helper(Block* b, SDL_Surface* s)
     shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
     SDL_Color color = scintColors[b->getColor()];
     //SDL_FillRect(s, &shadow, );
-    vertical_gradient(s, shadow, fade_color(scintColors[b->getColor()], 8));
+    vertical_gradient(s, shadow, fade_color(color, 2));
 }
 
 void Quad::display(SDL_Surface* screen, bool dropshadow)
@@ -517,10 +517,6 @@ int Region::fall()
     for (unsigned int i = 0; i < blocks.size(); ++i)
         if (blocks[i]->fall(grid) )
             hit = true;
-//	//see if one of the blocks has hit
-//	for (int i = 0; i < blocks.size(); ++i)
-//		if (blocks[i]->blocked((const Block***)grid) )
-//			hit = true;
 
     if (hit)
     {

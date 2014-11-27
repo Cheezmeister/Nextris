@@ -14,7 +14,7 @@ Particle Particle::ppool[Particle::ppoolSize];
 void draw(SDL_Surface* screen)
 {
     //color scintillator for the right panel
-    static Scintillator scint(FPS);
+    static Scintillator scint(0.05);
     //where we draw the field
     static SDL_Rect fieldRect = {0, 0, 1, 1};
     static SDL_Surface* fieldDisp = SDL_CreateRGBSurface(
@@ -28,7 +28,7 @@ void draw(SDL_Surface* screen)
     static SDL_Rect nextRect = {SCORE_X * BLOCK_WIDTH + GRADIENT, GRADIENT, 1, 1};
     static SDL_Surface* nextDisp = SDL_CreateRGBSurface(
                                        SDL_SWSURFACE,
-                                       3 * BLOCK_WIDTH,
+                                       3 * BLOCK_WIDTH * 3,
                                        4 * BLOCK_WIDTH,
                                        32,
                                        0, 0, 0, 0
@@ -57,8 +57,6 @@ void draw(SDL_Surface* screen)
     SDL_FillRect(nextDisp,  NULL, SDL_MapRGB(screen->format, 0, 0, 0));
     SDL_FillRect(scoreDisp, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
 
-    fill_gradient(screen, rpanel, scint.color() );
-
     if (chain)
         fill_gradient(screen, chainRect, scint.color() );
 
@@ -66,6 +64,8 @@ void draw(SDL_Surface* screen)
     playField().display(fieldDisp);
     playField().displayNextQuad(nextDisp);
     playerScore().display(scoreDisp);
+
+    fill_gradient(screen, rpanel, scint.color() );
 
     SDL_BlitSurface(fieldDisp, NULL, screen, &fieldRect);
     SDL_BlitSurface(nextDisp, NULL, screen, &nextRect);

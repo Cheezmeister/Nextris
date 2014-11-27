@@ -15,9 +15,9 @@ You can run it if you have nodejs with CoffeeScript, but you don't (and shouldn'
 
 The game is designed with flexibility in mind. We will default to classic Tetris rules,
 but as many gameplay params as I can manage shall be tweakable. This chunk isn't used
-anywhere; I'm keeping it around for reference.
+anywhere yet; I'm keeping it around for reference.
 
-    usage = """ Usage: $0 -[wxy] [options]
+    usage = """ Usage: $0 [options]
 
     -w Run in Windowed mode
 
@@ -28,10 +28,9 @@ anywhere; I'm keeping it around for reference.
     --keys.rotleft
     --keys.rotright
     --keys.pause=SPACE | Set the pause button | default spacebar
-    --keys.quit=ESC | Set the quit button | default Esc
 
-    --game.width=10
-    --game.height=20
+    --game.width=10 | Set the field width in blocks
+    --game.height=20 | Set the field height in blocks
     --game.speed=20Hz | Gameplay speed | default 20Hz i.e. 1200bpm | default 20.0f
     --game.instadrop=on | Enable or disable insta-dropping with "up" | default on
     --game.lineclear=on | Enable or disable classic lineclearing | default on
@@ -102,7 +101,7 @@ We're going to define some actions you can take via this script.
 This thang is mad portable. I tend to use the four configs below, though
 you can just as happily make a build/ folder and call it a day.
 
-      genbuild: ->
+      bootstrap: ->
         configs =
           'build/native/debug': ''
           'build/native/release': '-DCMAKE_BUILD_TYPE=Release'
@@ -129,7 +128,7 @@ Inception, etc.
 ## 4. Game Time
 
 Okay, no fancy build steps for you. It's time to run the game. But first...
- 
+
 ### Options!
 
 First let's set up the default options. These won't get
@@ -139,12 +138,13 @@ in `src/options.cpp`.
 
     options =
       keys:
-        up:   'W'
-        left: 'A'
-        down: 'S'
-        right:'D'
+        up:   'w'
+        left: 'a'
+        down: 's'
+        right:'d'
         rotleft: 'l'
         rotright: 'p'
+        pause: ' '
       game:
         width:  10
         height: 20
@@ -205,19 +205,10 @@ We'll just take whichever one is set.
     homedir = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE
     filename = A.rest.first || (path.join homedir, C.CONF_FILE)
 
-### Executing
+    # $ './build/native/debug/nextris*'
 
-    switch A.command
-      when 'genconf'
-        fs.writeFile filename, flatten(options), (err) ->
-          if (err) then _ "Noez, #{err}"
-          else _ "Saved #{filename}"
-      when 'play'
-        actions.genbuild()
-        cmd = "./build/native/debug/nextris-1.1.0"
-        $ cmd
-      else
-        usage()
+## Hacking
 
-
-
+First, please bear in mind that development on this thing spans back quite a 
+few years, so you're liable to run into old moldy corners that I can't fathom
+but have worked since I wrote them.

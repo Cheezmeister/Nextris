@@ -40,32 +40,32 @@ static SDL_Color h11_to_rgb(float hue)
     if (hue < 1.0)
     {
         SDL_Color c = {chroma, X, 0, 0};
-        r = c;
+        return c;
     }
     if (hue < 2.0)
     {
         SDL_Color c = {X, chroma, 0, 0};
-        r = c;
+        return c;
     }
     if (hue < 3.0)
     {
         SDL_Color c = {0, chroma, X, 0};
-        r = c;
+        return c;
     }
     if (hue < 4.0)
     {
         SDL_Color c = {0, X, chroma, 0};
-        r = c;
+        return c;
     }
     if (hue < 5.0)
     {
         SDL_Color c = {X, 0, chroma, 0};
-        r = c;
+        return c;
     }
     if (hue < 6.0)
     {
         SDL_Color c = {chroma, 0, X, 0};
-        r = c;
+        return c;
     }
     return r;
 }
@@ -84,103 +84,19 @@ static Uint32 sdlc_to_u32(const SDL_Color& color, const SDL_Surface* surf)
     return SDL_MapRGB(surf->format, color.r, color.g, color.b);
 }
 
-template <unsigned int N>
-class StochasticScintillator
-{
-
-private:
-    double _frequency;
-    unsigned long _time;
-    double _hues[N];
-    double _hueVelocities[N];
-
-    static const double SCALE = 360;
-
-    Uint32 lastTicks;
-
-public:
-    StochasticScintillator() { }
-    StochasticScintillator(double frequency)
-        : _frequency(frequency)
-    {
-        double velSum = 0.0;
-        for (int i = 0; i < N; ++i)
-        {
-            _hues[i] = rand() % (int)SCALE;
-            _hueVelocities[i] = SCALE * frequency / N - (double)(rand() % 10);
-            velSum += _hueVelocities[i];
-        }
-    }
-
-    SDL_Color color(int index)
-    {
-
-        Uint32 ticks = SDL_GetTicks();
-        Uint32 last = lastTicks;
-
-
-        Uint32 diff = ticks - last;
-
-        if (diff < 100)
-        {
-            update(diff);
-        }
-
-        lastTicks = ticks;
-
-        SDL_Color retVal = h11_to_rgb(_hues[index] / SCALE);
-        return retVal;
-    }
-
-    void update(int diff)
-    {
-        for (int i = 0; i < N; ++i)
-        {
-            _hues[i] += _hueVelocities[i] * diff / 1000;
-            if (_hues[i] > SCALE)
-            {
-                _hues[i] -= SCALE;
-            }
-            else if (_hues[i] < 0)
-            {
-                _hues[i] += SCALE;
-            }
-            for (int j = 0; j < N; ++j)
-            {
-                if (i == j) continue;
-
-                double distance = fabs(_hues[i] - _hues[j]);
-
-                if (distance > (SCALE / N)) continue;
-                if (distance < (SCALE / 1000)) continue;
-
-                double acceleration = SCALE / 5.0f / (distance * distance);
-                _hueVelocities[i] += acceleration * diff / 1000;
-                _hueVelocities[j] -= acceleration * diff / 1000;
-            }
-        }
-    }
-
-    SDL_Color operator[] (const int index)
-    {
-        SDL_Color ret = color(index);
-        return ret;
-    }
-};
 
 class Scintillator
 {
 private:
-    unsigned int freq;
-    Uint8 rgb[3];
+    double freq;
     unsigned long time;
-    int currentop;
-    int currentindex;
+    double hue; // from 0 to 1.0
 
 public:
     Scintillator() { }
-    Scintillator(int frequency);
-    void setFrequency(int frequency);
+    Scintillator(double frequency);
+    void setFrequency(double frequency);
+    void setHue(double hue);
     SDL_Color color();
 };
 
@@ -194,12 +110,18 @@ public:
     ScintillatingPalette()
     {
         for (int i = 0; i < Size; ++i)
-            colors[i].setFrequency(15 + rand() % 20);
+        {
+            colors[i].setFrequency(.15 + .1 * (rand() % 20));
+            colors[i].setHue(1.0 * (double)i / Size);
+        }
     }
-    ScintillatingPalette(int frequency)
+    ScintillatingPalette(double frequency)
     {
         for (int i = 0; i < Size; ++i)
+        {
             colors[i].setFrequency(frequency);
+            colors[i].setHue(1.0 * (double)i / Size);
+        }
     }
     SDL_Color operator[] (const int index)
     {

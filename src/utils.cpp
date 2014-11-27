@@ -42,47 +42,37 @@ void fill_gradient(SDL_Surface* screen, SDL_Rect& loc, SDL_Color cent)
     SDL_FillRect(screen, &loc, 0);
 }
 
-Scintillator::Scintillator(int frequency) :
+Scintillator::Scintillator(double frequency) :
     time(SDL_GetTicks())
 {
     setFrequency(frequency);
 }
-void Scintillator::setFrequency(int frequency)
+void Scintillator::setHue(double hue)
 {
-    currentop = 0;
-    currentindex = 1;
+    this->hue = hue;
+}
+
+void Scintillator::setFrequency(double frequency)
+{
     freq = frequency;
-    rgb[0] = 255;
-    rgb[1] = 0;
-    rgb[2] = 255;
+    hue = 0;
 }
 
 SDL_Color Scintillator::color()
 {
+    Uint32 ticks = SDL_GetTicks();
+    if (ticks == time) return h11_to_rgb(hue);
 
-    SDL_Color ret;
+    hue += (ticks - time) * freq / 1000.0;
 
-    if (SDL_GetTicks() - time > 1000 / freq)
+    if (hue >= 1.0)
     {
-        time = SDL_GetTicks();
-        //change direction if we need to
-        if (rgb[0] + rgb[1] + rgb[2] == 510)
-        {
-            currentop = -5;
-            for (currentindex = rand() % 3; rgb[currentindex] == 0; currentindex = rand() % 3);
-        }
-        else if (rgb[0] + rgb[1] + rgb[2] == 255)
-        {
-            currentop = 5;
-            for (currentindex = rand() % 3; rgb[currentindex] == 255; currentindex = rand() % 3);
-        }
-        //increment our current element in the right direction
-        rgb[currentindex] += currentop;
+        hue -= 1.0;
     }
 
-    ret.r = rgb[0];
-    ret.g = rgb[1];
-    ret.b = rgb[2];
+
+    SDL_Color ret = h11_to_rgb(hue);
+    time = ticks;
     return ret;
 }
 

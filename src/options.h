@@ -19,7 +19,7 @@ struct Options
         char rotleft;
         char rotright;
         char pause;
-        /* char quit; */
+        // TODO quit
     } keys;
 
     struct GameOpts
@@ -27,11 +27,11 @@ struct Options
         short width; // blocks
         short height; // blocks
         short speed;  // hertz
+        short colorthreshold;
+        short lookahead;
         bool instadrop;
         bool lineclear;
         bool colorclear;
-        short colorthreshold;
-        short lookahead;
     } game;
 
     struct GraphicsOpts
@@ -43,8 +43,8 @@ struct Options
 };
 
 bool init();
+Options& get_options();
 
-Options get_options();
 }
 }
 #endif

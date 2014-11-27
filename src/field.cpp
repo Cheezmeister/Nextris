@@ -1,11 +1,18 @@
+#include <queue>
+#include <vector>
 #include "field.h"
 #include "options.h"
 
 using namespace nextris::options;
+using namespace std;
 
 const int MOVE_DELAY = 3; //keypress delay in frames
 
 bool sHeld = false;
+
+typedef deque<Quad*> QuadQ;
+
+QuadQ qq;
 
 
 Field::Field()
@@ -25,7 +32,7 @@ Field::Field()
     frame = 0;
     moveTimer = 0;
 
-    //ablsolutely disgusting allocation.
+    //triple pointer for the lose
     grid = new Block**[FIELD_WIDTH];
     for (int i = 0; i < FIELD_WIDTH; ++i)
     {
@@ -33,7 +40,8 @@ Field::Field()
         for (int j = 0; j < FIELD_HEIGHT; ++j)
             grid[i][j] = NULL;
     }
-    nextQuad = createQuad();
+    for (int i = 0; i < get_options().game.lookahead; ++i)
+        createQuad();
     activeQuad = NULL;
 
 }
@@ -128,14 +136,7 @@ void Field::step()
     if (paused)
         return;
 
-    if (++frame % (SPEEDUP_DELAY * DEFAULT_INTERVAL / stepInterval) == 0) //if this many frames have passed
-    {
-        if (!harddrop) //prevent getting here several times in the same interval
-        {
-//			std::cout << "Speed increased! (" << stepInterval << ")\n";
-//			speedUp();
-        }
-    }
+    ++frame;
 
     //only force falling once an interval
     if ((!harddrop && !warpdrop && (frame % stepInterval)) || paused || clearing)
@@ -150,10 +151,11 @@ void Field::step()
     {
         cdebug << "Deactivating old Quad\n";
         delete activeQuad;
-        activeQuad = nextQuad;
-        activeQuad->goTo(FIELD_WIDTH / 2, 0);
         cdebug << "Creating new Quad\n";
-        nextQuad = createQuad();
+        createQuad();
+        activeQuad = qq.front();
+        qq.pop_front();
+        activeQuad->goTo(FIELD_WIDTH / 2, 0);
         pushBlocks = false;
     }
 
@@ -181,7 +183,13 @@ void Field::step()
 void Field::displayNextQuad(SDL_Surface* nextDisp)
 {
     SDL_FillRect(nextDisp, NULL, 0);
-    nextQuad->display(nextDisp);
+    int i = 0;
+    for (QuadQ::iterator it = qq.begin(); it != qq.end(); ++it, ++i)
+    {
+      Quad* quad = *it;
+      quad->goTo(1 + 4 * i, 1);
+      quad->display(nextDisp);
+    }
 }
 
 void Field::display(SDL_Surface* screen)
@@ -217,7 +225,9 @@ void Field::display(SDL_Surface* screen)
 
 Quad* Field::createQuad()
 {
-    return new Quad(1, 1, grid, skillLevel);
+    Quad* q = new Quad(1, 1, grid, skillLevel);
+    qq.push_back(q);
+    return q;
 }
 
 int Field::chunkFall()
@@ -325,8 +335,10 @@ int Field::cascade(int from = FIELD_HEIGHT - 1)
 
 void Field::clear()
 {
-    rowclear();
-    colorclear();
+    if (get_options().game.lineclear)
+        rowclear();
+    if (get_options().game.colorclear)
+        colorclear();
 
     if (!(chunking || clearing) )
     {
@@ -399,7 +411,7 @@ void Field::rowclear()
                 if (grid[col][i])
                 {
                     Region::identifyRegion(temp, here, grid[col][i]->getColor() );
-                    if (temp.size() >= skillLevel)
+                    if (get_options().game.colorclear && temp.size() >= get_options().game.colorthreshold)
                     {
                         playerScore().addBonus(B_COLORCLEAR, temp.size() );
                         playerScore().addMultiplier(M_EXTRA, temp.size() - skillLevel);
@@ -429,7 +441,6 @@ void Field::rowclear()
             }
 
             playerScore().addBonus(B_ROWCLEAR, rowscleared);
-//			std::cout << "Updating score...\n";
             col = 0;
             chunking = true;
             clearing = false;
@@ -507,7 +518,7 @@ void Field::colorclear()
                 done.push_back( c );
             }
 
-            if (region.size() >= skillLevel)
+            if (region.size() >= get_options().game.colorthreshold)
             {
                 playerScore().addBonus(B_COLORCLEAR, region.size() );
                 playerScore().addMultiplier(M_EXTRA, region.size() - skillLevel);
