@@ -11,18 +11,18 @@
 #include "display.h"
 
 enum {
-	NORMAL_EXIT,
-	ERROR_EXIT,
-	NO_EXIT,
-	RESTART
+    NORMAL_EXIT,
+    ERROR_EXIT,
+    NO_EXIT,
+    RESTART
 };
 
 
 class Game
-	{
-	public:
-		int run();
-	};
+{
+public:
+    int run();
+};
 
 int nextris_run();
 
