@@ -1,4 +1,4 @@
-#!/usr/bin/env coffee -l
+#!/usr/bin/env coffee
 
 Hey there. Thanks for checking out my little bit of hackery.
 
@@ -9,7 +9,9 @@ Have fun!
 
 By the way, because I am an incredible dork, this readme also happens to be a script by which you may launch the program.
 It's written in [Literate CoffeeScript](http://coffeescript.org/#literate), which I think is way cool.
-You can run it if you have nodejs with CoffeeScript, but you don't (and shouldn't) have to.
+You can run it if you have nodejs with CoffeeScript, but you don't (and shouldn't) have to. 
+
+`$ coffee README.litcoffee help`
 
 ## 1. Usage
 
@@ -42,6 +44,53 @@ anywhere yet; I'm keeping it around for reference.
     --graphics.maxparticles |
     --graphics.framerate | Sets framerate as a multiplier
     """
+
+### Options!
+
+First let's set up the default options. These won't get passed into the game directly 
+and so changing them here will have no effect unless you write out a `.nextris.conf` 
+with `writeconf`. The ultimate defaults can be found in `src/options.cpp`.
+
+    options =
+      keys:
+        up:   'w'
+        left: 'a'
+        down: 's'
+        right:'d'
+        rotleft: 'l'
+        rotright: 'p'
+        pause: ' '
+      game:
+        width:  10
+        height: 20
+        speed:  20 # in Hz
+        instadrop:  on
+        lineclear:  on
+        colorclear: off
+        colorthreshold: 5
+      graphics:
+        windowed: false
+        maxparticles: 200
+        mult: 3
+      audio:
+        mult: 7
+        track:
+          pad:        on
+          bassline:   on
+          melody:     on
+        fx:
+          clear:      on
+          drop:       on
+
+I use a tree-ish, object-y structure for gameplay params here, but I may want
+to flatten them out for simplicity in the conf file and elsewhere.
+
+    flatten = (obj, prefix) ->
+      prefix ?= ''
+      switch typeof obj
+        when 'object'
+          (flatten val, "#{prefix}#{if prefix then '.' else ''}#{key}" for key, val of obj).join "\n"
+        else "#{prefix} = #{obj}"
 
 ## 2. Lame, Boring Setup
 
@@ -87,12 +136,12 @@ But enough farting about. Let's define some silly relengy helpers.
 
 ## 3. Build System
 
-Nominally, the build system is CMake. CMake is great at building Cxx
+Nominally, the build system is [CMake][]. CMake is great at building Cxx
 portably, but it gets messy fast with more complex build automation.
 Makefiles are for your granddad and shell scripts are frigging
 impossible to read.
 
-We're going to define some actions you can take via this script.
+We're going to define some actions you can take via this franken-script.
 
     actions =
 
@@ -101,114 +150,96 @@ We're going to define some actions you can take via this script.
 This thang is mad portable. I tend to use the four configs below, though
 you can just as happily make a build/ folder and call it a day.
 
-      bootstrap: ->
-        configs =
-          'build/native/debug': ''
-          'build/native/release': '-DCMAKE_BUILD_TYPE=Release'
-          'build/js/debug': '-DUSE_EMSCRIPTEN=1'
-          'build/js/release': '-DUSE_EMSCRIPTEN=1 -DCMAKE_BUILD_TYPE=Release'
+      bootstrap:
+        run: ->
+          configs =
+            'build/native/debug': ''
+            'build/native/release': '-DCMAKE_BUILD_TYPE=Release'
+            'build/js/debug': '-DUSE_EMSCRIPTEN=1'
+            'build/js/release': '-DUSE_EMSCRIPTEN=1 -DCMAKE_BUILD_TYPE=Release'
 
-        for cfg, options of configs
-          $ "mkdir -p #{cfg}"
-          exec "cmake ../../.. #{options}", {cwd: cfg}
+          for cfg, options of configs
+            $ "mkdir -p #{cfg}"
+            $ "cd #{cfg} && cmake ../../.. #{options}"
+
+### Writing configuration
+
+I'm a lazy doof so I love when I can start with a nice stub config/dotfile.
+Call `writeconf` to write the default options.
+
+      writeconf:
+        run: ->
+          fs = require 'fs'
+          path = require 'path'
+
+We're going to write out a conf file in your homedir, but first need
+to figure out where to put it.
+
+          homedir = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE
+          filename = A.rest.first || (path.join homedir, C.CONF_FILE)
+
+Write the values.
+
+          fs.writeFile filename, flatten(options), (err) -> if (err) then _ "Couldn't write: #{err}"
+
 
 ### Self-Documenting
 
 Inception, etc.
 
-      doc: ->
-        $ "markdown #{A.thisfile} > README.html"
-        _ "markdown #{A.thisfile} > README.html"
+      doc:
+        run: ->
+          $ "markdown #{A.thisfile} > README.html"
+
+Usage.
+
+      help:
+        run: (self) ->
+          actions = [name for name of self]
+          _ "Usage: #{A.thisfile} [action]\n"
+          _ "Actions: \n#{actions.join('\n')}\n"
+          _ "Default options:"
+          _ flatten(options)
+
+Echo options.
+
+      options:
+        run: ->
+          _ flatten(options)
+
+### Releasing
+
+      release:
+        run: (self) ->
+          self.bootstrap.run()
+
 
 ### Do It
 
     if A.command of actions
-        return (actions[A.command])()
+        return (actions[A.command].run)(actions)
 
 ## 4. Game Time
 
-Okay, no fancy build steps for you. It's time to run the game. But first...
-
-### Options!
-
-First let's set up the default options. These won't get
-passed into the game directly and so changing them here will have no effect
-unless you write out a `.nextris.conf`. The ultimate defaults can be found
-in `src/options.cpp`.
-
-    options =
-      keys:
-        up:   'w'
-        left: 'a'
-        down: 's'
-        right:'d'
-        rotleft: 'l'
-        rotright: 'p'
-        pause: ' '
-      game:
-        width:  10
-        height: 20
-        speed:  20 # in Hz
-        instadrop:  on
-        lineclear:  on
-        colorclear: off
-        colorthreshold: 5
-      graphics:
-        windowed: false
-        maxparticles: 200
-        mult: 3
-      audio:
-        mult: 7
-        track:
-          pad:        on
-          bassline:   on
-          melody:     on
-        fx:
-          clear:      on
-          drop:       on
-
-I use a tree-ish, object-y structure for gameplay params here, but I really want
-to flatten them out for simplicity when stuffing them into the native game.
-
-    flatten = (obj, prefix) ->
-      prefix ?= ''
-      switch typeof obj
-        when 'object'
-          (flatten val, "#{prefix}#{if prefix then '.' else ''}#{key}" for key, val of obj).join "\n"
-        else "#{prefix} = #{obj}"
-
 ### Running
 
-Finally!
+Finally! 
 
-    _ "Default options:"
-    _ flatten(options)
-
-I'm a lazy doof so I love when I can start with a nice stub config/dotfile.
-I'm also a lazy doof in punting on the TODO above, and this makes doing so
-somewhat viable.
-
-### Finding the home folder
-
-We're going to offer to generate a conf file for the player, but first need
-to figure out where to put it.
-
-First, import the stuff we need to do so. `fs` and `path` are for writing
-the file, `yesno` is to get a nice y/n prompt.
-
-    fs = require 'fs'
-    path = require 'path'
-
-The environment variable for your home folder could be any of these.
-We'll just take whichever one is set.
-
-    homedir = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE
-    filename = A.rest.first || (path.join homedir, C.CONF_FILE)
-
-    # $ './build/native/debug/nextris*'
+    actions.bootstrap.run()
+    $ 'cd build/native/debug && make && ./nextris*'
 
 ## Hacking
 
 First, please bear in mind that development on this thing spans back quite a 
 few years, so you're liable to run into old moldy corners that I can't fathom
-but have worked since I wrote them.
+but have worked since I wrote them. You're on your own there.
+
+Second, see [bootstrapping](#bootstrapping), above. You'll also need the following:
+
+- SDL 1.2
+- PortAudio (optional)
+- Emscripten (optional)
+
+Third, have fun and be sure to share any improvements.
+
+[CMake]: http://www.cmake.org

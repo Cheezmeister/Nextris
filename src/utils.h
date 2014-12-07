@@ -25,7 +25,7 @@ void vertical_gradient(SDL_Surface* screen, SDL_Rect& loc, SDL_Color bottom);
 template<typename T, typename U>
 T lerp(T a, U b, float t)
 {
-    return a + (b - a) * t;
+    return a + b * t - a * t;
 }
 
 static SDL_Color h11_to_rgb(float hue)
