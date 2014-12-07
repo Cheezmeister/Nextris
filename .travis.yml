@@ -3,7 +3,9 @@ compiler:
   - gcc
   - clang
 before_install:
-  - sudo apt-get install -y libsdl-dev libportaudio-dev
+  - sudo apt-get update 
+  - sudo apt-get install -y libsdl-dev 
+  - sudo apt-get install -y libportaudio-dev
 script: cmake -DCMAKE_BUILD_TYPE=Release . && make
 
 notifications:
