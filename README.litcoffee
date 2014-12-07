@@ -212,6 +212,8 @@ Echo options.
       release:
         run: (self) ->
           self.bootstrap.run()
+          $ 'cmake --build build/native/release'
+          $ 'cmake --build build/js/release'
 
 
 ### Do It
