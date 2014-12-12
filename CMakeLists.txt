@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 2.6)
 #definitions
 set(PROJECT_NAME "Nextris")
 set(APP_NAME nextris)
-set(PROJECT_VERSION 1 1 0)
+set(PROJECT_VERSION 1 2 0)
 set(DESCRIPTION "Tetris with a twist")
 set(README README.txt)
 set(LICENSE ${README})
