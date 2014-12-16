@@ -85,6 +85,12 @@ static Uint32 sdlc_to_u32(const SDL_Color& color, const SDL_Surface* surf)
 }
 
 
+static double pulsate(Uint32 ticks, double frequency)
+{
+    return sin(frequency * ticks / 1000);
+}
+
+
 class Scintillator
 {
 private:
