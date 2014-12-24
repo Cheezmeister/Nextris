@@ -1,5 +1,6 @@
 #include "options.h"
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -33,30 +34,19 @@ void defaults()
     _options.keys.rotleft         = 'l';
     _options.keys.rotright        = 'p';
     _options.keys.pause           = ' '; // Set the pause button | default spacebar
-    /* _options.keys.quit            = ''; */
 
     _options.game.width=10;
     _options.game.height=20;
     _options.game.speed=20;
     _options.game.instadrop=true;
     _options.game.lineclear=true;
-    _options.game.colorclear=true;
-    _options.game.colorthreshold= 3;
-    _options.game.lookahead= 2;
+    _options.game.colorclear=false;
+    _options.game.colorthreshold= 4;
+    _options.game.lookahead= 1;
 
     _options.graphics.windowed = true;
     _options.graphics.maxParticles = 100;
     _options.graphics.mult = 3;
-}
-
-void doline(const char* line) 
-{
-    string key = line;
-    char* eq = strchr(line, '=');
-    key = key.substr(0, eq - line);
-    cout << " key = " << key;
-    string value = (eq + 1);
-    cout << " value = " << value;
 }
 
 bool init()
@@ -65,7 +55,7 @@ bool init()
     defaults();
 
     string filename = find_file(".nextris.conf");
-    ifstream infile(filename);
+    ifstream infile(filename.c_str());
 
     if (!infile) return false;
 
@@ -79,24 +69,28 @@ bool init()
         infile >> eq;
         infile >> value;
 
-        #define READ_OPTION(name, expr) if (key == #name) _options.name = (expr)
-        READ_OPTION(keys.left, value[0]);
-        READ_OPTION(keys.right, value[0]);
-        READ_OPTION(keys.up, value[0]);
-        READ_OPTION(keys.down, value[0]);
-        READ_OPTION(keys.rotleft, value[0]);
-        READ_OPTION(keys.rotright, value[0]);
-        READ_OPTION(keys.pause, value[0]);
+        char c = value[0];
+        char* temp;
+        long i = strtol(value.c_str(), &temp, 10);
 
-        READ_OPTION(game.speed, stoi(value));
-        READ_OPTION(game.colorthreshold, stoi(value));
-        READ_OPTION(game.lookahead, stoi(value));
+        #define READ_OPTION(name, expr) if (key == #name) {_options.name = (expr); continue; }
+        READ_OPTION(keys.left, c);
+        READ_OPTION(keys.right, c);
+        READ_OPTION(keys.up, c);
+        READ_OPTION(keys.down, c);
+        READ_OPTION(keys.rotleft, c);
+        READ_OPTION(keys.rotright, c);
+        READ_OPTION(keys.pause, c);
+
+        READ_OPTION(game.speed, i);
+        READ_OPTION(game.colorthreshold, i);
+        READ_OPTION(game.lookahead, i);
         READ_OPTION(game.instadrop, "true" == value);
         READ_OPTION(game.lineclear, "true" == value);
         READ_OPTION(game.colorclear,"true" == value);
         #undef READ_OPTION
 
-        std::cerr << key << "=" << value << endl;
+        std::cerr << "Ignoring '" << key << "=" << value << "'" << endl;
     }
 
     infile.close();
