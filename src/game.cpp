@@ -41,8 +41,14 @@ int Game::run()
     cerr << "Entering main loop.\n";
     for (;;)
     {
-        if ((result = update()) != NO_EXIT)
+        result = update();
+        if (result != NO_EXIT)
             break;
+
+        draw(screen);
+
+        /* nextris::audio::update_bassline(playerScore().getTotal()); */
+
 
         //regulate framerate
         int pauseSecs = nextFrame - SDL_GetTicks();
@@ -62,8 +68,8 @@ int setup()
 {
     srand(time(NULL) );
 
-    nextris::audio::init();
     nextris::options::init();
+    nextris::audio::init(nextris::options::get_options().game.width);
 
     //init video
     if ( SDL_Init( SDL_INIT_VIDEO ) < 0 )
@@ -77,9 +83,13 @@ int setup()
     atexit(SDL_Quit);
 
     // create a new window
+    int score_width = abs((FIELD_HEIGHT) * 4 / 3 - (FIELD_WIDTH));
+    int width = FIELD_WIDTH * BLOCK_WIDTH + score_width * BLOCK_WIDTH;
+    int height = FIELD_HEIGHT * BLOCK_WIDTH;
+
     screen = SDL_SetVideoMode(
-                 FIELD_WIDTH * BLOCK_WIDTH + SCORE_WIDTH * BLOCK_WIDTH,
-                 FIELD_HEIGHT * BLOCK_WIDTH,
+                 width,
+                 height,
                  16,
                  SDL_HWSURFACE|SDL_DOUBLEBUF);
 
@@ -128,11 +138,6 @@ int update()
         playerScore(true);
         return RESTART;
     }
-
-    draw(screen);
-
-    nextris::audio::update_bassline(playerScore().getTotal());
-
 
     return NO_EXIT;
 }

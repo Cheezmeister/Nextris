@@ -3,13 +3,13 @@
 
 #include "SDL.h"
 #include "debug.h"
-#include "controls.h"
 #include "block.h"
 #include "score.h"
 #include "utils.h"
 
-#define FIELD_HEIGHT 20
-#define FIELD_WIDTH 10
+// TODO Blargh
+#define FIELD_HEIGHT nextris::options::get_options().game.height
+#define FIELD_WIDTH nextris::options::get_options().game.width
 #define DEFAULT_SKILL LEVEL_MEDIUM
 #define DEFAULT_INTERVAL 20
 #define SPEEDUP_DELAY 500

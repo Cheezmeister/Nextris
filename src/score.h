@@ -6,7 +6,6 @@
 
 #define SCORE_X FIELD_WIDTH
 #define SCORE_Y 7
-#define SCORE_WIDTH ((FIELD_HEIGHT) * 4 / 3 - (FIELD_WIDTH))
 
 
 typedef enum {

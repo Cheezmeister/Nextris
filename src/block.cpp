@@ -3,6 +3,7 @@
 #include "field.h"
 #include "display.h"
 #include "audio.h"
+#include "options.h"
 
 
 static ScintillatingPalette<6> scintColors(0.02);
@@ -507,12 +508,6 @@ int Region::fall()
 
     cdebug << "Entering Region::fall()\n";
 
-    if (!valid() )
-    {
-        cdebug << "wtf mite! exiting!\n";
-        return 1;
-    }
-
     //fall a notch
     for (unsigned int i = 0; i < blocks.size(); ++i)
         if (blocks[i]->fall(grid) )
@@ -524,12 +519,7 @@ int Region::fall()
         cdebug << "Region hit!\n";
         for (unsigned int i = 0; i < blocks.size(); ++i)
         {
-            if (!valid() )
-                cdebug << "haHAH!\n";
             blocks[i]->recede();
-        }
-        for (unsigned int i = 0; i < blocks.size(); ++i)
-        {
             blocks[i]->updateGrid(grid);
         }
         cdebug << "Exiting Region::fall()\n";
@@ -540,13 +530,6 @@ int Region::fall()
     return 0;
 }
 
-int Region::valid()
-{
-    for (unsigned int i = 0; i < blocks.size(); ++i)
-        if (!blocks[i] || blocks[i]->getX() > 10 || blocks[i]->getY() > 20)
-            return 0;
-    return 1;
-}
 
 void Region::display(SDL_Surface* screen)
 {

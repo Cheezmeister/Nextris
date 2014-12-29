@@ -82,6 +82,9 @@ bool init()
         READ_OPTION(keys.rotright, c);
         READ_OPTION(keys.pause, c);
 
+        READ_OPTION(game.width, i);
+        READ_OPTION(game.height, i);
+
         READ_OPTION(game.speed, i);
         READ_OPTION(game.colorthreshold, i);
         READ_OPTION(game.lookahead, i);

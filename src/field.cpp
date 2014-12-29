@@ -392,9 +392,11 @@ void Field::speedUp()
 
 void Field::rowclear()
 {
-    static bool row[FIELD_HEIGHT];
+    static bool* row = NULL; 
     static int col = 0;
     Region temp(grid);
+
+    if (!row) row = new bool[nextris::options::get_options().game.width];
 
     cdebug << "Entering Field::rowclear()\n";
 
@@ -538,7 +540,8 @@ void Field::colorclear()
 
 Field& playField(bool reset)
 {
-    static Field* f = new Field();
+    static Field* f = NULL;
+    if (!f) f = new Field();
     if (reset)
     {
         delete f;

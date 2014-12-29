@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "field.h"
 #include "block.h"
+#include "options.h"
 
 using namespace std;
 

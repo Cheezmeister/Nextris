@@ -1,5 +1,6 @@
 #include <cmath>
 #include "display.h"
+#include "options.h"
 
 enum {
     PF_NONE   = 0,
@@ -47,6 +48,7 @@ void draw(SDL_Surface* screen)
     Uint8 chain = playField().chaining() * 255;
 
     //the area of the right panel i.e. the non-field part of the display
+    int SCORE_WIDTH = ((FIELD_HEIGHT) * 4 / 3 - (FIELD_WIDTH));
     SDL_Rect rpanel = {SCORE_X * BLOCK_WIDTH,
                        0,
                        SCORE_WIDTH * BLOCK_WIDTH,

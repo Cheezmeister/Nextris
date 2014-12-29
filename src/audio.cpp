@@ -43,15 +43,14 @@ static Chord epic3[] = { CHORD_ARR_VI, CHORD_ARR_VII, CHORD_ARR_i, CHORD_ARR_i }
 static const float (*chordProg)[6] = invRock;
 
 enum ChannelEnum {
-    CHAN_FIRSTCOLUMN,
-    CHAN_LASTCOLUMN = CHAN_FIRSTCOLUMN + FIELD_WIDTH - 1,
     CHAN_PAD,
     CHAN_PERC,
     CHAN_BASS,
-    CHANNELS,
+    CHAN_FIRSTCOLUMN,
+    /* CHAN_LASTCOLUMN = CHAN_FIRSTCOLUMN + FIELD_WIDTH - 1, */
+    /* CHANNELS, */
 };
 
-//        static const int CHANNELS = FIELD_WIDTH + 1;
 const float TONIC_FREQUENCY = 440.0F;
 static const int BPM = 160;
 static const Uint16 barspermin = BPM / 4;
@@ -108,9 +107,10 @@ static bool inited = false;
 static bool nosound = false;
 
 //grand staff ;)
-static StereoToneInfo toneInfo[CHANNELS]; //wave info
 static int chordi = 0; //chord index
 static Uint16 rhythm = 0x0000; //bitstring for bass rhythm
+int num_channels;
+static StereoToneInfo* toneInfo; //wave info
 
 //clamp a value between two extremes
 template<typename T>
@@ -122,7 +122,7 @@ inline T clamp(T value, T min, T max)
 float wave_value(const ToneInfo& tone)
 {
     if (tone.type == WT_SIN)
-        return tone.current_amp * sin(tone.phase) / (float)CHANNELS;
+        return tone.current_amp * sin(tone.phase);
     if (tone.type == WT_SAWTOOTH)
         return tone.current_amp * ((tone.phase-M_PI) / M_PI - 1) / 2.0f;
     if (tone.type == WT_TRIANGLE)
@@ -158,7 +158,7 @@ static int nextris_pa_callback( const void *inputBuffer, void *outputBuffer,
     for( i=0; i<framesPerBuffer; i++ )
     {
         out[0] = out[1] = 0.0;
-        for (int j = 0; j < CHANNELS; ++j)
+        for (int j = 0; j < num_channels; ++j)
         {
             StereoToneInfo* data = toneArr + j;
             if (data->channel.left.amp + data->channel.right.amp == 0)
@@ -221,9 +221,10 @@ void cleanup()
     paerr = Pa_StopStream( stream );
     stream = NULL;
 }
-void init()
+
+void init(int channels)
 {
-    if (inited || nosound)
+    if (inited)
         return;
 
     PaError paerr = Pa_Initialize();
@@ -232,6 +233,9 @@ void init()
         cerr << "Couldn't init! PortAudio error: " << Pa_GetErrorText( paerr );
         return;
     }
+
+    num_channels = channels + CHAN_FIRSTCOLUMN;
+    toneInfo = new StereoToneInfo[num_channels];
 
     // make sure PA cleans up before exit
     atexit(cleanup);
@@ -263,7 +267,7 @@ void init()
 
 void enable(bool on)
 {
-    if (nosound && on) init();
+    /* if (nosound && on) init(); */
 
     nosound = !on;
 }
@@ -381,34 +385,36 @@ void play_sound(int color, int column, int row, int what)
 
     int i = chordi;
 
+    int ch = column + CHAN_FIRSTCOLUMN;
+
     if (what == SND_SHIFTLEFT || what == SND_SHIFTRIGHT)
     {
-        toneInfo[column].channel.left.type = WT_SQUARE;
-        toneInfo[column].channel.right.type = WT_SQUARE;
+        toneInfo[ch].channel.left.type = WT_SQUARE;
+        toneInfo[ch].channel.right.type = WT_SQUARE;
 
-        toneInfo[column].channel.left.freq = TONIC_FREQUENCY * chordProg[i][0] / 2;
-        toneInfo[column].channel.right.freq = TONIC_FREQUENCY * chordProg[i][5] / 2;
+        toneInfo[ch].channel.left.freq = TONIC_FREQUENCY * chordProg[i][0] / 2;
+        toneInfo[ch].channel.right.freq = TONIC_FREQUENCY * chordProg[i][5] / 2;
 
-        toneInfo[column].channel.left.duration = 0.05;
-        toneInfo[column].channel.right.duration = 0.05;
-        toneInfo[column].channel.right.decay = DECAY_NONE;
-        toneInfo[column].channel.left.decay = DECAY_NONE;
-        toneInfo[column].channel.right.amp = (float)column / (float)FIELD_WIDTH / 10.0;
-        toneInfo[column].channel.left.amp = 0.1 - toneInfo[column].channel.right.amp;
+        toneInfo[ch].channel.left.duration = 0.05;
+        toneInfo[ch].channel.right.duration = 0.05;
+        toneInfo[ch].channel.right.decay = DECAY_NONE;
+        toneInfo[ch].channel.left.decay = DECAY_NONE;
+        toneInfo[ch].channel.right.amp = (float)column / (float)num_channels / 10.0;
+        toneInfo[ch].channel.left.amp = 0.1 - toneInfo[ch].channel.right.amp;
     }
     else if (what == SND_ASPLOADED)
     {
-        toneInfo[column].channel.left.type = WT_SIN;
-        toneInfo[column].channel.right.type = WT_SIN;
+        toneInfo[ch].channel.left.type = WT_SIN;
+        toneInfo[ch].channel.right.type = WT_SIN;
 
-        toneInfo[column].channel.left.freq = TONIC_FREQUENCY * chordProg[i][color];
-        toneInfo[column].channel.right.freq = TONIC_FREQUENCY * chordProg[i][color];
-        toneInfo[column].channel.left.duration = 1.0;
-        toneInfo[column].channel.right.duration = 1.0;
-        toneInfo[column].channel.right.decay = DECAY_LINEAR;
-        toneInfo[column].channel.left.decay = DECAY_LINEAR;
-        toneInfo[column].channel.right.amp = (float)column / (float)FIELD_WIDTH;
-        toneInfo[column].channel.left.amp = 1.0 - toneInfo[column].channel.left.amp;
+        toneInfo[ch].channel.left.freq = TONIC_FREQUENCY * chordProg[i][color];
+        toneInfo[ch].channel.right.freq = TONIC_FREQUENCY * chordProg[i][color];
+        toneInfo[ch].channel.left.duration = 1.0;
+        toneInfo[ch].channel.right.duration = 1.0;
+        toneInfo[ch].channel.right.decay = DECAY_LINEAR;
+        toneInfo[ch].channel.left.decay = DECAY_LINEAR;
+        toneInfo[ch].channel.right.amp = (float)column / (float)num_channels;
+        toneInfo[ch].channel.left.amp = 1.0 - toneInfo[ch].channel.left.amp;
     }
     else
         return;
