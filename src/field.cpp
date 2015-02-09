@@ -33,11 +33,11 @@ Field::Field()
     moveTimer = 0;
 
     //triple pointer for the lose
-    grid = new Block**[FIELD_WIDTH];
-    for (int i = 0; i < FIELD_WIDTH; ++i)
+    grid = new Block**[nextris::options::get_options().game.width];
+    for (int i = 0; i < nextris::options::get_options().game.width; ++i)
     {
-        grid[i] = new Block*[FIELD_HEIGHT];
-        for (int j = 0; j < FIELD_HEIGHT; ++j)
+        grid[i] = new Block*[nextris::options::get_options().game.height];
+        for (int j = 0; j < nextris::options::get_options().game.height; ++j)
             grid[i][j] = NULL;
     }
     for (int i = 0; i < get_options().game.lookahead; ++i)
@@ -51,9 +51,9 @@ Field::~Field()
     if (activeQuad)
         delete activeQuad;
 
-    for (int i = 0; i < FIELD_WIDTH; ++i)
+    for (int i = 0; i < nextris::options::get_options().game.width; ++i)
     {
-        for (int j = 0; j < FIELD_HEIGHT; ++j)
+        for (int j = 0; j < nextris::options::get_options().game.height; ++j)
         {
             if (grid[i][j])
                 delete grid[i][j];
@@ -155,7 +155,7 @@ void Field::step()
         createQuad();
         activeQuad = qq.front();
         qq.pop_front();
-        activeQuad->goTo(FIELD_WIDTH / 2, 0);
+        activeQuad->goTo(nextris::options::get_options().game.width / 2, 0);
         pushBlocks = false;
     }
 
@@ -200,9 +200,9 @@ void Field::display(SDL_Surface* screen)
         activeQuad->display(screen, true);
 
 
-    for (int j = 0; j < FIELD_HEIGHT; ++j)
+    for (int j = 0; j < nextris::options::get_options().game.height; ++j)
     {
-        for (int i = 0; i < FIELD_WIDTH; ++i)
+        for (int i = 0; i < nextris::options::get_options().game.width; ++i)
         {
             if (grid[i][j])
             {
@@ -236,19 +236,15 @@ int Field::chunkFall()
 
     static bool identifying = true; //are we still identifying chunks?
 
-    bool taken[FIELD_WIDTH][FIELD_HEIGHT];
-    for (int i = 0; i < FIELD_WIDTH; ++i)
-        for (int j = 0; j < FIELD_HEIGHT; ++j)
-            taken[i][j] = false;
 
     if (identifying)
     {
         //identify "chunks" of blocks
-        for (int j = FIELD_HEIGHT - 1; j >= 0; --j)
+        for (int j = nextris::options::get_options().game.height - 1; j >= 0; --j)
         {
-            for (int i = 0; i < FIELD_WIDTH; ++i)
+            for (int i = 0; i < nextris::options::get_options().game.width; ++i)
             {
-                if (taken[i][j] || grid[i][j] == NULL)
+                if (grid[i][j] == NULL)
                     continue;
 
                 here.x = i;
@@ -289,7 +285,7 @@ int Field::chunkFall()
 
 }
 
-int Field::cascade(int from = FIELD_HEIGHT - 1)
+int Field::cascade(int from = nextris::options::get_options().game.height - 1)
 {
     static int i = 0;
     static int j = from;
@@ -303,7 +299,7 @@ int Field::cascade(int from = FIELD_HEIGHT - 1)
             ++i;
             j = from;
         }
-        if (i >= FIELD_WIDTH)
+        if (i >= nextris::options::get_options().game.width)
         {
             i = 0;
             j = from;
@@ -361,7 +357,7 @@ bool Field::rowIsEmpty(int index)
         cdebug << "Exiting Field::rowIsEmpty() (NULL!)\n";
         return true;
     }
-    for (int i = 0; i < FIELD_WIDTH; ++i)
+    for (int i = 0; i < nextris::options::get_options().game.width; ++i)
     {
         if (grid[i][index] != NULL)
         {
@@ -405,7 +401,7 @@ void Field::rowclear()
 
     else if (clearing) //if we're clearing, do the next column
     {
-        for (int i = 0; i < FIELD_HEIGHT; ++i)
+        for (int i = 0; i < nextris::options::get_options().game.height; ++i)
         {
             if (row[i]) //if this row is being cleared
             {
@@ -429,11 +425,11 @@ void Field::rowclear()
                 grid[col][i] = NULL;
             }
         }
-        if (++col >= FIELD_WIDTH) //if we're finished clearing
+        if (++col >= nextris::options::get_options().game.width) //if we're finished clearing
         {
             int rowscleared = 0;
 
-            for (int i = 0; i < FIELD_HEIGHT; ++i)
+            for (int i = 0; i < nextris::options::get_options().game.height; ++i)
             {
                 if (row[i])
                 {
@@ -453,10 +449,10 @@ void Field::rowclear()
 
     else //else see if we need to clear
     {
-        for (int i = 0; i < FIELD_HEIGHT; ++i) //for each row
+        for (int i = 0; i < nextris::options::get_options().game.height; ++i) //for each row
         {
             bool needsclearing = true;
-            for (int j = 0; j < FIELD_WIDTH; ++j) //see if this row is full
+            for (int j = 0; j < nextris::options::get_options().game.width; ++j) //see if this row is full
             {
                 if (!grid[j][i])
                 {
@@ -468,7 +464,7 @@ void Field::rowclear()
             {
                 clearing = true;
                 row[i] = true;
-                for (int j = 0; j < FIELD_WIDTH; ++j)
+                for (int j = 0; j < nextris::options::get_options().game.width; ++j)
                 {
                     grid[j][i]->condemn();
                 }
@@ -477,7 +473,7 @@ void Field::rowclear()
         if (!clearing) //nothing needs to be cleared
         {
             col = 0;
-            for (int i = 0; i < FIELD_HEIGHT; ++i)
+            for (int i = 0; i < nextris::options::get_options().game.height; ++i)
                 row[i] = false;
         }
     }
@@ -495,9 +491,9 @@ void Field::colorclear()
     if (clearing || cascading || chunking)
         return;
 
-    for (unsigned int i = 0; i < FIELD_WIDTH; ++i)
+    for (unsigned int i = 0; i < nextris::options::get_options().game.width; ++i)
     {
-        for (unsigned int j = 0; j < FIELD_HEIGHT; ++j)
+        for (unsigned int j = 0; j < nextris::options::get_options().game.height; ++j)
         {
             bool skip = false;
             if (grid[i][j] == NULL)

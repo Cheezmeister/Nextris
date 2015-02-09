@@ -7,9 +7,6 @@
 #include "score.h"
 #include "utils.h"
 
-// TODO Blargh
-#define FIELD_HEIGHT nextris::options::get_options().game.height
-#define FIELD_WIDTH nextris::options::get_options().game.width
 #define DEFAULT_SKILL LEVEL_MEDIUM
 #define DEFAULT_INTERVAL 20
 #define SPEEDUP_DELAY 500

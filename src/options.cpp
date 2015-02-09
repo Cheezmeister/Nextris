@@ -22,7 +22,13 @@ Options& get_options()
 string find_file(const char* basename)
 {
     // TODO Windows-ify
+    #ifdef __WIN32__
+    const char* home = getenv("HOME");
+    if (home) return string(home) + '/' + basename;
+    return string(basename);
+    #else
     return string(getenv("HOME")) + '/' + basename;
+    #endif
 }
 
 void defaults()

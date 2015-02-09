@@ -83,9 +83,9 @@ int setup()
     atexit(SDL_Quit);
 
     // create a new window
-    int score_width = abs((FIELD_HEIGHT) * 4 / 3 - (FIELD_WIDTH));
-    int width = FIELD_WIDTH * BLOCK_WIDTH + score_width * BLOCK_WIDTH;
-    int height = FIELD_HEIGHT * BLOCK_WIDTH;
+    int score_width = abs((nextris::options::get_options().game.height) * 4 / 3 - (nextris::options::get_options().game.width));
+    int width = nextris::options::get_options().game.width * BLOCK_WIDTH + score_width * BLOCK_WIDTH;
+    int height = nextris::options::get_options().game.height * BLOCK_WIDTH;
 
     screen = SDL_SetVideoMode(
                  width,

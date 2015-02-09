@@ -20,8 +20,8 @@ void draw(SDL_Surface* screen)
     static SDL_Rect fieldRect = {0, 0, 1, 1};
     static SDL_Surface* fieldDisp = SDL_CreateRGBSurface(
                                         SDL_SWSURFACE,
-                                        FIELD_WIDTH  * BLOCK_WIDTH,
-                                        FIELD_HEIGHT * BLOCK_WIDTH,
+                                        nextris::options::get_options().game.width  * BLOCK_WIDTH,
+                                        nextris::options::get_options().game.height * BLOCK_WIDTH,
                                         32,
                                         0, 0, 0, 0
                                     );
@@ -35,7 +35,7 @@ void draw(SDL_Surface* screen)
                                        0, 0, 0, 0
                                    );
     //where we draw the score
-    static SDL_Rect scoreRect = {(FIELD_WIDTH + 1) * BLOCK_WIDTH, nextRect.y + nextDisp->h + BLOCK_WIDTH, 1, 1};
+    static SDL_Rect scoreRect = {(nextris::options::get_options().game.width + 1) * BLOCK_WIDTH, nextRect.y + nextDisp->h + BLOCK_WIDTH, 1, 1};
     static SDL_Surface* scoreDisp = SDL_CreateRGBSurface(
                                         SDL_SWSURFACE,
                                         LEVEL_HARD * BLOCK_WIDTH,
@@ -48,11 +48,11 @@ void draw(SDL_Surface* screen)
     Uint8 chain = playField().chaining() * 255;
 
     //the area of the right panel i.e. the non-field part of the display
-    int SCORE_WIDTH = ((FIELD_HEIGHT) * 4 / 3 - (FIELD_WIDTH));
+    int SCORE_WIDTH = ((nextris::options::get_options().game.height) * 4 / 3 - (nextris::options::get_options().game.width));
     SDL_Rect rpanel = {SCORE_X * BLOCK_WIDTH,
                        0,
                        SCORE_WIDTH * BLOCK_WIDTH,
-                       FIELD_HEIGHT * BLOCK_WIDTH
+                       nextris::options::get_options().game.height * BLOCK_WIDTH
                       };
 
     SDL_FillRect(fieldDisp, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
@@ -67,7 +67,9 @@ void draw(SDL_Surface* screen)
     playField().displayNextQuad(nextDisp);
     playerScore().display(scoreDisp);
 
+    std::cerr << "herr\n";
     fill_gradient(screen, rpanel, scint.color() );
+    std::cerr << "thurr\n";
 
     SDL_BlitSurface(fieldDisp, NULL, screen, &fieldRect);
     SDL_BlitSurface(nextDisp, NULL, screen, &nextRect);
@@ -167,9 +169,9 @@ void Particle::display(SDL_Surface* screen)
 
     if (flags & PF_BOUNCY)
     {
-        if (y >= FIELD_HEIGHT * BLOCK_WIDTH || y <= 0)
+        if (y >= nextris::options::get_options().game.height * BLOCK_WIDTH || y <= 0)
             yvel = -yvel;
-        if (x >= FIELD_WIDTH * BLOCK_WIDTH || x <= 0)
+        if (x >= nextris::options::get_options().game.width * BLOCK_WIDTH || x <= 0)
             xvel = -xvel;
     }
 

@@ -4,7 +4,7 @@
 #include <SDL.h>
 #include <sstream>
 
-#define SCORE_X FIELD_WIDTH
+#define SCORE_X nextris::options::get_options().game.width
 #define SCORE_Y 7
 
 

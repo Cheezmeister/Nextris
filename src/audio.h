@@ -1,3 +1,11 @@
+enum {
+    SND_ASPLOADED,
+    SND_ROTATELEFT,
+    SND_ROTATERIGHT,
+    SND_SHIFTLEFT,
+    SND_SHIFTRIGHT
+};
+
 namespace nextris
 {
 namespace audio

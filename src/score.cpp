@@ -1,5 +1,3 @@
-#include <sstream>
-#include <algorithm>
 #include "field.h"
 #include "block.h"
 #include "options.h"
@@ -40,7 +38,7 @@ void Score::addBonus(Bonus bonus, unsigned int arg)
     else if (bonus == B_DOUBLECLEAR)
     {
         addBonus(B_ROWCLEAR, arg);
-        addBonus(B_COLORCLEAR, arg * FIELD_WIDTH);
+        addBonus(B_COLORCLEAR, arg * nextris::options::get_options().game.width);
         addMultiplier(M_DOUBLE, arg);
     }
     cdebug << "Exiting Score::addBonus()\n";
@@ -67,26 +65,18 @@ void Score::display(SDL_Surface* screen) const
 
 
     //get decimal digits
-    stringstream ss;
-    string scorestr = "";
-    temp = total + curr;
-    ss << temp;
-    ss >> scorestr;
+    char scorecharstar[10]; // yes, I'm horrible.
+    sprintf(scorecharstar, "%d", total);
 
-    int i = 0;
-    for (string::reverse_iterator it = scorestr.rbegin(); it != scorestr.rend(); ++i, ++it)
+    for (int i = 0; scorecharstar[i]; ++i)
     {
-        for (int j = *it - '0'; j >= 0; --j) //work from the bottom up
+        for (int j = scorecharstar[i] - '0'; j >= 0; --j) //work from the bottom up
         {
             //draw rect where it goes
             if (i < 6) //scores up to one million display like this
             {
                 Block dblock(i, 9 - j, i);
                 dblock.display(screen);
-            }
-            else
-            {
-                ; //??? Such a huge score has yet to be encountered and I'm lazy
             }
         }
     }

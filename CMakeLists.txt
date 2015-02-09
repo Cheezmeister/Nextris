@@ -1,6 +1,7 @@
 #CMake script for Spheres of Influence
 #Run 'cmake <source_directory>' to generate a makefile
 cmake_minimum_required(VERSION 2.6)
+cmake_policy(VERSION 2.8)
 
 #definitions
 set(PROJECT_NAME "Nextris")
@@ -34,6 +35,8 @@ if (USE_EMSCRIPTEN)
   set(COMPILE_FLAGS  "-DEXPORTED_FUNCTIONS=\"['_js_setup', '_js_cleanup', '_js_update']\"")
   set(CMAKE_CXX_FLAGS_RELEASE "-O2") # -O3 fails to link, this works somewhy :/
   set(APP_SUFFIX ".js")
+else()
+  set(COMPILE_FLAGS "-DNO_STDIO_REDIRECT")
 endif()
 
 set(WIN_DIR "${CMAKE_SOURCE_DIR}/win")

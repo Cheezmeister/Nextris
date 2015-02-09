@@ -5,7 +5,7 @@ namespace nextris
 {
 namespace audio
 {
-void init() { }
+void init(int width) { }
 void enable(bool on) { }
 void play_sound(int color, int column, int row, int what) { }
 void update_bassline(unsigned long score) { }
@@ -14,10 +14,9 @@ void update_bassline(unsigned long score) { }
 #else // HAVE_PORTAUDIO
 
 #include <cmath>
+#include <iostream>
 #include "SDL.h"
-#include "field.h"
 #include "portaudio.h"
-#include "block.h"
 
 namespace nextris
 {
@@ -26,6 +25,16 @@ namespace audio
 using namespace std;
 
 typedef const float Chord[6];
+typedef Chord ChordProgression[4];
+
+const float note_do = 1.0;
+const float note_re = 9.0 / 8.0;
+const float note_mi = 1.0;
+const float note_fa = 1.0;
+const float note_so = 1.0;
+const float note_la = 1.0;
+const float note_ti = 1.0;
+const float octave  = 2.0;
 
 #define CHORD_ARR_i   {5.0 / 6.0, 1.0, 1.25, 5.0 / 3.0, 2.0, 2.5}
 #define CHORD_ARR_VI  {5.0 / 6.0, 2.0 / 3.0, 1.0, 4.0 / 3.0, 5.0 / 3.0, 2.0}
@@ -47,7 +56,7 @@ enum ChannelEnum {
     CHAN_PERC,
     CHAN_BASS,
     CHAN_FIRSTCOLUMN,
-    /* CHAN_LASTCOLUMN = CHAN_FIRSTCOLUMN + FIELD_WIDTH - 1, */
+    /* CHAN_LASTCOLUMN = CHAN_FIRSTCOLUMN + nextris::options::get_options().game.width - 1, */
     /* CHANNELS, */
 };
 
@@ -219,6 +228,7 @@ static int nextris_pa_callback( const void *inputBuffer, void *outputBuffer,
 void cleanup()
 {
     paerr = Pa_StopStream( stream );
+    delete[] toneInfo;
     stream = NULL;
 }
 
@@ -231,8 +241,10 @@ void init(int channels)
     if (paerr != paNoError)
     {
         cerr << "Couldn't init! PortAudio error: " << Pa_GetErrorText( paerr );
+
         return;
     }
+
 
     num_channels = channels + CHAN_FIRSTCOLUMN;
     toneInfo = new StereoToneInfo[num_channels];

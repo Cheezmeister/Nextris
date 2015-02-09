@@ -35,12 +35,12 @@ int Block::blocked(const Block*** grid)
         cdebug << "side\n";
         return 2;
     }
-    if (getX() >= FIELD_WIDTH) //hit side
+    if (getX() >= nextris::options::get_options().game.width) //hit side
     {
         cdebug << "right\n";
         return 3;
     }
-    if (getY() >= FIELD_HEIGHT) //hit bottom
+    if (getY() >= nextris::options::get_options().game.height) //hit bottom
     {
         cdebug << "bottom\n";
         return 1;
@@ -428,7 +428,7 @@ void shadow_helper(Block* b, SDL_Surface* s)
     shadow.x = b->getX() * BLOCK_WIDTH;
     shadow.y = b->getY() * BLOCK_WIDTH;
     shadow.w = BLOCK_WIDTH;
-    shadow.h = FIELD_HEIGHT * BLOCK_WIDTH;
+    shadow.h = nextris::options::get_options().game.height * BLOCK_WIDTH;
     SDL_Color color = scintColors[b->getColor()];
     //SDL_FillRect(s, &shadow, );
     vertical_gradient(s, shadow, fade_color(color, 2));
@@ -544,7 +544,7 @@ const std::vector<Block*>& Region::getBlocks()
 //contiguous here means all blocks are connected by an edge
 void Region::identifyRegion(Region& region, Coord orig, unsigned char color)
 {
-    if (orig.x >= FIELD_WIDTH || orig.y >= FIELD_HEIGHT ||
+    if (orig.x >= nextris::options::get_options().game.width || orig.y >= nextris::options::get_options().game.height ||
             orig.x < 0 || orig.y < 0) //edge!
         return;
     if (region.grid[orig.x][orig.y] == NULL) //no block

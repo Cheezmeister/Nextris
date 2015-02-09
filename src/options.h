@@ -26,10 +26,10 @@ struct Options
     {
         short width; // blocks
         short height; // blocks
-        short speed;  // hertz
+        short speed;  // hertz (TODO)
         short colorthreshold;
         short lookahead;
-        bool instadrop;
+        bool instadrop; // press up to drop fully
         bool lineclear;
         bool colorclear;
     } game;
