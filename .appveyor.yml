@@ -1,0 +1,13 @@
+version: 1.0.{build}
+init:
+- ps: >-
+    choco install cmake
+    Invoke-WebRequest https://www.libsdl.org/release/SDL-devel-1.2.15-mingw32.tar.gz
+    cmake .
+before_build:
+- 'cd c:\projects\Nextris'
+- dir
+- cmake .
+build_script:
+- mkdir build
+- cd build
