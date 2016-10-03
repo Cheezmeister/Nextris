@@ -1,5 +1,7 @@
 #!/usr/bin/env coffee
 
+[![Build Status](https://travis-ci.org/Cheezmeister/Nextris.svg?branch=master)](https://travis-ci.org/Cheezmeister/Nextris)
+
 Hey there. Thanks for checking out my little bit of hackery.
 
 Nextris is a synaesthetic, portable, malleable Tetris clone with procedural graphics and audio.  In other words, there are no sprites, and there are no soundbites.  Everything's done on the fly!
