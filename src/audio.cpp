@@ -173,8 +173,8 @@ static int nextris_pa_callback( const void *inputBuffer, void *outputBuffer,
             if (data->channel.left.amp + data->channel.right.amp == 0)
                 continue;
 
-            out[0] += wave_value(data->channel.left);
-            out[1] += wave_value(data->channel.right);
+            out[0] += wave_value(data->channel.left) / num_channels;
+            out[1] += wave_value(data->channel.right) / num_channelsl;
 
             data->channel.left.time += 1.0 / SAMPLE_RATE;
             data->channel.right.time += 1.0 / SAMPLE_RATE;
@@ -426,7 +426,7 @@ void play_sound(int color, int column, int row, int what)
         toneInfo[ch].channel.right.decay = DECAY_LINEAR;
         toneInfo[ch].channel.left.decay = DECAY_LINEAR;
         toneInfo[ch].channel.right.amp = (float)column / (float)num_channels;
-        toneInfo[ch].channel.left.amp = 1.0 - toneInfo[ch].channel.left.amp;
+        toneInfo[ch].channel.left.amp = 1.0 - toneInfo[ch].channel.right.amp;
     }
     else
         return;

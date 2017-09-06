@@ -67,9 +67,7 @@ void draw(SDL_Surface* screen)
     playField().displayNextQuad(nextDisp);
     playerScore().display(scoreDisp);
 
-    std::cerr << "herr\n";
     fill_gradient(screen, rpanel, scint.color() );
-    std::cerr << "thurr\n";
 
     SDL_BlitSurface(fieldDisp, NULL, screen, &fieldRect);
     SDL_BlitSurface(nextDisp, NULL, screen, &nextRect);
